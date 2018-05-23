@@ -1,0 +1,66 @@
+package com.cmts.xm.service.member.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0002_MEM_DAYBOOK;
+import com.cmts.xm.bean.vo.ResultVo;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.ConsumptionAndTopUpService;
+/**
+ * 
+ * @Description: 消费与充值Service实现
+ * @ClassName: ConsumptionAndTopUpServiceImpl
+ * @author: 王淼 
+ * @date: 2018年5月19日 上午11:31:44  
+ *
+ */
+@SuppressWarnings({ "all" })
+@Service
+public class ConsumptionAndTopUpServiceImpl implements ConsumptionAndTopUpService {
+	
+	@Autowired
+	private DaoFactory dao;
+	
+	@Autowired
+	private CommonService commonService;
+	
+
+	/**
+	 * 
+	 * @Description: 消费
+	 * @Title: consumptionInformation  
+	 * @author: 王淼 
+	 * @Date: 2018年5月19日 下午12:30:08
+	 *
+	 * @param jsonbean
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	@Transactional(propagation = Propagation.REQUIRED)
+	public ResultVo consumptionInformation(JsonBean jsonbean) throws Exception {
+		ResultVo vo = new ResultVo();
+		List<C0002_MEM_DAYBOOK> dayBookList = jsonbean.getDaybook();
+		for(C0002_MEM_DAYBOOK dayBook : dayBookList){
+			C0002_MEM_DAYBOOK newDayBook = commonService.selectMemdaybook(dayBook.getTraceno(), jsonbean.getPlaceno());
+			if(null != newDayBook){
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				vo.setResultmsg("流水订单已存在");
+				return vo;
+			}
+		}
+		return null;
+	}
+	
+	
+
+}

@@ -1,0 +1,17 @@
+package com.cmts.xm.service.member;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.vo.ResultVo;
+
+/**
+ * 
+ * @Description: 改密
+ * @ClassName: QueryAccontService
+ * @author: wdl
+ *
+ */
+public interface UpdateLifeDateService {
+
+	public ResultVo updatePassword(JsonBean jsonBean) throws Exception;
+
+}

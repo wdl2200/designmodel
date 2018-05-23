@@ -1,0 +1,129 @@
+package com.cmts.xm.web.reserved;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.cmts.xm.bean.vo.ReservedVo;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.reserved.ReservedInventoryService;
+import com.cmts.xm.utils.HttpUtils;
+
+import net.sf.json.JSONObject;
+
+/**
+ * 
+ * @Description: 修改星美生活订单接口
+ * @ClassName: UpdatePlaceOrders
+ * @author: 王淼 
+ * @date: 2017年11月21日 下午8:31:59  
+ *
+ */
+@SuppressWarnings({ "all" })
+@Controller
+@RequestMapping(value = "/")
+public class UpdatePlaceOrders {
+	
+	private static Logger log = Logger.getLogger(InsertPlaceOrders.class);
+	
+	@Autowired
+	private CommonService commonService;
+	
+	@Autowired
+	private ReservedInventoryService reservedInventoryService;
+	
+	@RequestMapping(value = "/updateMTXOrder" , produces = "application/json; charset=utf-8")
+	public @ResponseBody String updateMTXOrder(HttpServletRequest request, HttpServletResponse response){
+		ReservedVo vo = new ReservedVo();
+		
+		try {
+			String orderId = request.getParameter("orderId");
+			String event = request.getParameter("event");
+			String data = "";
+			
+			if(null != request.getParameter("data")){
+				data = request.getParameter("data");
+			}
+			
+			log.info("传入参数：orderId=" + orderId + "__event=" + event + "__data=" + data);
+			
+			if(null == orderId || null == event || "".equals(orderId) || "".equals(event)){
+				log.error("缺少相应参数__orderId=" + orderId + "__event=" + event);
+				vo.setCode("1001002");
+				vo.setMsg("缺少相应参数__orderId=" + orderId + "__event=" + event);
+				return JSONObject.fromObject(vo).toString();
+			}
+			
+			Integer orderState = eventTransitionOrderState(event);
+			
+			if(!commonService.judgeOrderIsExist(orderId)){
+				log.info("订单号不存在__orderId=" + orderId);
+				vo.setCode("1001004");
+				vo.setMsg("订单号不存在__orderId=" + orderId);
+				return JSONObject.fromObject(vo).toString();
+			}
+			
+			switch (orderState) {
+			case 3:
+				vo = reservedInventoryService.placeOrdersUpdateForCancelInto(orderId, orderState, data);
+				break;
+			case 2:
+				vo = reservedInventoryService.placeOrdersUpdateForReceiveInto(orderId, orderState);
+				break;
+			case 4:
+				if("".equals(data) || commonService.judgeOrderSpIsReturnable(orderId, data.split(",")[6], Integer.parseInt(data.split(",")[4]))){
+					vo = reservedInventoryService.placeOrdersUpdateForReturnInto(orderId, orderState, data);
+				}else{
+					log.info("商品(" + data.split(",")[4] + ")退货数量大于购买数量");
+					vo.setCode("1001005");
+					vo.setMsg("商品退货数量超过购买数量，退货失败");
+				}
+				break;
+			}
+			
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			vo.setCode("1001001");
+			vo.setMsg("接口异常:" + e.getMessage());
+		}
+		
+		return JSONObject.fromObject(vo).toString();
+	}
+	
+	private Integer eventTransitionOrderState(String event) throws Exception {
+		if("cancel".equals(event)){//买家取消
+			return 3;	
+		}else if("receive".equals(event)){//买家收货
+			return 2;
+		}else{//return 买家退货
+			return 4;
+		}
+	}
+	
+	public static void main(String[] args) throws Exception{
+		String orderId = "0000000001";
+		String event = "return";
+		//String data = "001123455645"
+		//String data = "0001,ccccc,00124562414554,10,2,德芙丝滑牛奶巧克力牛奶味43g,90015279";
+		String data = "001,youzhengguonei,001122334455,10,2,王老吉正宗凉茶310ml,90015898";
+		
+		Map<String,Object> paraMap = new HashMap<String, Object>();
+		paraMap.put("orderId", orderId);
+		paraMap.put("event", event);
+		paraMap.put("data", data);
+		
+		String IMPL_URL = "http://10.10.4.104:8077/ChainService/updateMTXOrder";
+		String jsonString = HttpUtils.http(IMPL_URL, paraMap);
+		
+		System.out.println(jsonString);
+	}
+
+}

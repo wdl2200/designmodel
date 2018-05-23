@@ -1,0 +1,104 @@
+package com.cmts.xm.web.member;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0001_MEM_ACCOUNT;
+import com.cmts.xm.bean.table.member.C0002_MEM_DAYBOOK;
+import com.cmts.xm.bean.vo.ResultVo;
+import com.cmts.xm.dao.util.DateUtil;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.MemberAccountHlService;
+
+/**
+ * 
+ * @Description: 退礼品
+ * @ClassName: MemberIntegralGift
+ * @author: 王海明
+ * @date: 2018年5月19日 
+ *
+ */
+@SuppressWarnings({ "all" })
+@Controller
+@RequestMapping(value = "/")
+public class MemberGiftBack {
+	
+private static Logger log = Logger.getLogger(MemberGiftBack.class);
+	
+	@Autowired
+	private MemberAccountHlService memberAccountHlService;
+	
+	@Autowired
+	private CommonService  commonService;
+	
+	@RequestMapping(value = "/memberGiftBack", produces = "application/json; charset=utf-8")
+	public @ResponseBody String memberGiftBack(HttpServletRequest request,HttpServletResponse response){
+		ResultVo vo = new ResultVo();
+		String postdata = request.getParameter("postdata");
+		try {
+			Map<String, Class<C0002_MEM_DAYBOOK>> retMap = new HashMap<String, Class<C0002_MEM_DAYBOOK>>();  
+			retMap.put("daybook", C0002_MEM_DAYBOOK.class);
+			JsonBean jsonbean = (JsonBean) JSONObject.toBean(JSONObject.fromObject(postdata), JsonBean.class, retMap);
+			//JsonBean jsonbean = (JsonBean) JSONObject.toBean(JSONObject.fromObject(postdata), JsonBean.class);
+			
+			log.info("接口必要参数名：acccountno----daybook----placeno----pirce----score----verifyInfo********传入参数：" + jsonbean);
+			if(null == jsonbean.getAcccountno() || "".equals(jsonbean.getAcccountno()) || 
+			   null == jsonbean.getDaybook() ||  
+			   null == jsonbean.getPlaceno() || "".equals(jsonbean.getPassword()) ||
+			   null == jsonbean.getPirce() || "".equals(jsonbean.getPirce()) || 
+			   null == jsonbean.getScore() || "".equals(jsonbean.getScore()) ){
+				log.info("缺少相应参数：acccountno=" + jsonbean.getAcccountno() + 
+					  " daybook=" + jsonbean.getDaybook() +
+					  " placeno=" + jsonbean.getPlaceno() +
+					  " traceprice=" + jsonbean.getTraceprice() +
+					  " score=" + jsonbean.getScore());
+				vo.setResultmsg("缺少相应参数");
+				vo.setResultcode("12011");
+				return vo.toChangeResultJson();
+			}
+			
+			if(DateUtil.validationDate(jsonbean.getPlaceno(), jsonbean.getVerifyInfo())){
+				log.info("加密验证错误");
+				vo.setResultmsg("加密验证错误");
+				vo.setResultcode("12012");
+				return vo.toChangeResultJson();
+			}
+			
+			if(!commonService.selectCinemaNo(jsonbean.getPlaceno())){
+				log.info("电影院不存在");
+				vo.setResultmsg("电影院不存在");
+				vo.setResultcode("12013");
+				return vo.toChangeResultJson();
+			}	
+						
+			
+			C0001_MEM_ACCOUNT memberAccount = commonService.selectMemberAccount(jsonbean.getAcccountno(), jsonbean.getPlaceno());
+			if(null == memberAccount){
+				log.info("会员不存在");
+				vo.setResultcode("12014");
+				vo.setResultmsg("会员不存在");
+				return vo.toChangeResultJson();
+			}
+			
+			vo = memberAccountHlService.addMemberAccountHl(jsonbean,memberAccount);					
+		} catch (Exception e) {
+			log.info("接口异常" , e);
+			e.printStackTrace();
+			vo.setResultcode("12000");
+			vo.setResultmsg("接口异常");				
+		}
+		return JSONObject.fromObject(vo).toString();
+	}
+}

@@ -1,0 +1,133 @@
+package com.cmts.xm.service.member.impl;
+
+import java.util.List;
+
+import org.jfree.util.Log;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0001_MEM_ACCOUNT;
+import com.cmts.xm.bean.table.member.C0002_MEM_DAYBOOK;
+import com.cmts.xm.bean.vo.ResultVo;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.dao.util.DateUtil;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.FreezingAndUnsealingService;
+import com.cmts.xm.utils.ErrorCode;
+
+/**
+ * 
+ * @Description: 会员冻结解封
+ * @ClassName: FreezingAndUnsealingServiceImpl
+ * @author: liuc
+ * @date: 2018年05月19日 下午14:56:14 
+ *
+ */
+@Service
+public class FreezingAndUnsealingServiceImpl implements FreezingAndUnsealingService {
+	
+	@Autowired
+	private DaoFactory dao;
+	@Autowired
+	private CommonService commonService;
+	
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public ResultVo freezingAndUnsealing(JsonBean jsonBean) throws Exception {
+		ResultVo vo = new ResultVo();
+		String acccountno = jsonBean.getAccountno();
+		List<C0002_MEM_DAYBOOK> daybook = jsonBean.getDaybook();
+		String placeno = jsonBean.getPlaceno();
+		Double traceprice =jsonBean.getTraceprice();
+		Double score = jsonBean.getScore();
+		String verifyInfo = jsonBean.getVerifyInfo();
+		String optype = jsonBean.getOpttype();
+		//判断是否有该影院
+		boolean cinemaCount = commonService.selectCinemaNo(placeno);
+		if( !cinemaCount){
+			Log.info("影院不存在");
+			vo.setResultcode(ErrorCode.CINEMA_LOST_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.CINEMA_LOST_ERROR.getMsg());
+			return vo;
+		}
+		//判断加密
+		if(DateUtil.validationDate(placeno,verifyInfo)){
+			Log.info("验证码错误");
+			vo.setResultcode(ErrorCode.VALICATE_CODE_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.VALICATE_CODE_ERROR.getMsg());
+			return vo;
+		}
+		//判断参数
+		if(null == acccountno || "".equals(acccountno) || 
+		   null == daybook    || 
+		   null == placeno 	  || "".equals(placeno)    || 
+		   null == traceprice || "".equals(traceprice) || 
+		   null == optype 	  || "".equals(optype)     || 
+		   null == score      || "".equals(score)      || 
+		   null == verifyInfo || "".equals(verifyInfo) ){
+		   Log.info("缺少参数");
+		   vo.setResultcode(ErrorCode.PARAM_LOST_ERROR.getValues());
+		   vo.setResultmsg(ErrorCode.PARAM_LOST_ERROR.getMsg());
+		   return vo;
+		}
+		//判断是否有该会员
+		C0001_MEM_ACCOUNT memAccount = commonService.selectMemberAccount(acccountno, placeno);
+		if(null == memAccount){
+			Log.info("账号不存在");
+			vo.setResultcode(ErrorCode.ACCOUNT_LOST_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.ACCOUNT_LOST_ERROR.getMsg());
+			return vo;
+		}
+		//判断余额
+		if((memAccount.getBalance()+traceprice)<0){
+			Log.info("账号金额不足");
+			vo.setResultcode(ErrorCode.ACCOUNT_NOTENOUGH_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.ACCOUNT_NOTENOUGH_ERROR.getMsg());
+			return vo;
+		}
+		//判断积分余额
+		if((memAccount.getScore()+score)<0){
+			Log.info("账号积分不足");
+			vo.setResultcode(ErrorCode.SCORE_NOTENOUGH_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.SCORE_NOTENOUGH_ERROR.getMsg());
+			return vo;
+		}
+		//判断流水是否存在,不存在则插入
+		String result=commonService.procMemdaybook(jsonBean);
+		if(result.equals("-1")){
+			Log.info("流水订单已存在");
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode(ErrorCode.PAYBOOK_PROC_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.PAYBOOK_PROC_ERROR.getMsg());
+			return vo;
+		}
+		//2为解封操作,变为 0 有效
+		if("2".equals(optype)){
+			optype="0";
+		}
+		StringBuffer sql=  new StringBuffer(  " update c0001_mem_account t  set  t.usable=?, t.balance=t.balance+?,  "
+											+ " t.score=t.score+? "
+											+ " where placeno =?  and accountno = ?");
+		Log.info(sql);
+		boolean boo= dao.updatesql(sql.toString(), new Object[]{optype,traceprice,score,placeno,acccountno});
+		if(boo){
+			Log.info("冻结/解封成功");
+			vo.getResultMap().put("serialnumber", result);
+			vo.setResultcode(ErrorCode.SUCCESS.getValues());
+			vo.setResultmsg(ErrorCode.SUCCESS.getMsg());
+			return vo;
+		}
+		else{
+			Log.info("程序内部错误");
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode(ErrorCode.SYSTEM_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.SYSTEM_ERROR.getMsg());
+			return vo;
+		}
+	}
+	
+}

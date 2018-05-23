@@ -1,0 +1,260 @@
+package com.cmts.xm.bean.table.reserved;
+
+import java.math.BigDecimal;
+
+import com.cmts.xm.utils.DateUtils;
+
+/**
+ * 
+ * @Description: 新库存批次表（星美专用）
+ * @ClassName: XM_0710_InventoryBatch
+ * @author: 王淼
+ * @date: 2017年8月16日 上午9:34:25
+ *
+ */
+public class XM_0710_InventoryBatch {
+
+	/**
+	 * 批次号
+	 */
+	private BigDecimal batchNo;
+
+	/**
+	 * 影城编码
+	 */
+	private String cinemaNo;
+
+	/**
+	 * 影城名称
+	 */
+	private String cinemaName;
+
+	/**
+	 * 供应商ID
+	 */
+	private String vendorNo;
+
+	/**
+	 * 供应商名称
+	 */
+	private String vendorName;
+
+	/**
+	 * 商品ID
+	 */
+	private String spNo;
+
+	/**
+	 * 商品名称
+	 */
+	private String spName;
+
+	/**
+	 * 包装单位
+	 */
+	private String unitName;
+
+	/**
+	 * 标准成本
+	 */
+	private Double costprice;
+
+	/**
+	 * 库存数量
+	 */
+	private Long inventoryQuantity;
+
+	/**
+	 * 库存成本
+	 */
+	private Double inventoryCost;
+
+	/**
+	 * 入库时间
+	 */
+	private String inboundDate = DateUtils.simpleDateFormat("");
+	
+	/**
+	 * 供应商商品id
+	 */
+	private String cspId;
+	/**
+	 * 减少库存时 减少的数量
+	 */
+	private long reduceCount;
+	
+	/**
+	 * 生产日期
+	 */
+	private String productionDate;
+	
+	/**
+	 * 1.采购/调拨单号---2.盘点：盘点日期+第几次盘点
+	 */
+	private String purchaseNo;
+	
+	/**
+	 * 0.保留默认值，1.采购/调拨，2.盘点，3.导入
+	 */
+	private Integer batchType;
+	
+	/**
+	 * 入库数量
+	 */
+	private Long intoWarehouseNum;
+	
+
+	public BigDecimal getBatchNo() {
+		return batchNo;
+	}
+
+	public void setBatchNo(BigDecimal batchNo) {
+		this.batchNo = batchNo;
+	}
+
+	public String getCinemaNo() {
+		return cinemaNo;
+	}
+
+	public void setCinemaNo(String cinemaNo) {
+		this.cinemaNo = cinemaNo;
+	}
+
+	public String getCinemaName() {
+		return cinemaName;
+	}
+
+	public void setCinemaName(String cinemaName) {
+		this.cinemaName = cinemaName;
+	}
+
+	public String getVendorNo() {
+		return vendorNo;
+	}
+
+	public void setVendorNo(String vendorNo) {
+		this.vendorNo = vendorNo;
+	}
+
+	public String getVendorName() {
+		return vendorName;
+	}
+
+	public void setVendorName(String vendorName) {
+		this.vendorName = vendorName;
+	}
+
+	public String getSpNo() {
+		return spNo;
+	}
+
+	public void setSpNo(String spNo) {
+		this.spNo = spNo;
+	}
+
+	public String getSpName() {
+		return spName;
+	}
+
+	public void setSpName(String spName) {
+		this.spName = spName;
+	}
+
+	public String getUnitName() {
+		return unitName;
+	}
+
+	public void setUnitName(String unitName) {
+		this.unitName = unitName;
+	}
+
+	public Double getCostprice() {
+		return costprice;
+	}
+
+	public void setCostprice(Double costprice) {
+		this.costprice = costprice;
+	}
+
+	public Long getInventoryQuantity() {
+		return inventoryQuantity;
+	}
+
+	public void setInventoryQuantity(Long inventoryQuantity) {
+		this.inventoryQuantity = inventoryQuantity;
+	}
+
+	public Double getInventoryCost() {
+		return inventoryCost;
+	}
+
+	public void setInventoryCost(Double inventoryCost) {
+		this.inventoryCost = inventoryCost;
+	}
+
+	public String getInboundDate() {
+		return inboundDate;
+	}
+
+	public void setInboundDate(String inboundDate) {
+		this.inboundDate = inboundDate;
+	}
+
+	public long getReduceCount() {
+		return reduceCount;
+	}
+
+	public void setReduceCount(long reduceCount) {
+		this.reduceCount = reduceCount;
+	}
+
+	@Override
+	public String toString() {
+		return "XM_0710_InventoryBatch [batchNo=" + batchNo + ", cinemaNo=" + cinemaNo + ", cinemaName=" + cinemaName
+				+ ", vendorNo=" + vendorNo + ", vendorName=" + vendorName + ", spNo=" + spNo + ", spName=" + spName
+				+ ", unitName=" + unitName + ", costprice=" + costprice + ", inventoryQuantity=" + inventoryQuantity
+				+ ", inventoryCost=" + inventoryCost + ", inboundDate=" + inboundDate + ", cspId=" + cspId
+				+ ", reduceCount=" + reduceCount + ", productionDate=" + productionDate + ", purchaseNo=" + purchaseNo
+				+ ", batchType=" + batchType + ", intoWarehouseNum=" + intoWarehouseNum + "]";
+	}
+
+	public String getCspId() {
+		return cspId;
+	}
+
+	public void setCspId(String cspId) {
+		this.cspId = cspId;
+	}
+
+	public String getProductionDate() {
+		return productionDate;
+	}
+
+	public void setProductionDate(String productionDate) {
+		this.productionDate = productionDate;
+	}
+
+	public String getPurchaseNo() {
+		return purchaseNo;
+	}
+
+	public void setPurchaseNo(String purchaseNo) {
+		this.purchaseNo = purchaseNo;
+	}
+
+	public Integer getBatchType() {
+		return batchType;
+	}
+
+	public void setBatchType(Integer batchType) {
+		this.batchType = batchType;
+	}
+
+	public Long getIntoWarehouseNum() {
+		return intoWarehouseNum;
+	}
+
+	public void setIntoWarehouseNum(Long intoWarehouseNum) {
+		this.intoWarehouseNum = intoWarehouseNum;
+	}
+}

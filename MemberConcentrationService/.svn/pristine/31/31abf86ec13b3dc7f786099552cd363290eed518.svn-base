@@ -1,0 +1,64 @@
+package com.cmts.xm.service.member.impl;
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0001_MEM_ACCOUNT;
+import com.cmts.xm.bean.table.member.C0002_MEM_DAYBOOK;
+import com.cmts.xm.bean.vo.ResultVo;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.MemberAccountHlService;
+import com.cmts.xm.web.member.MemberIntegralGift;
+@Service
+public class MemberAccountHlServiceImpl implements MemberAccountHlService {
+	
+	private static Logger log = Logger.getLogger(MemberIntegralGift.class);
+	
+	@Autowired
+	private  DaoFactory dao;
+	
+	@Autowired
+	private CommonService  commonService;
+	
+	
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED) 
+	public ResultVo addMemberAccountHl(JsonBean jsonbean,C0001_MEM_ACCOUNT memberAccount) throws Exception {
+		ResultVo vo = new ResultVo();		
+		String status = commonService.procMemdaybook(jsonbean);
+		if(status.equals("-1")){
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode("10017");
+			vo.setResultmsg("流水订单已存在");
+			vo.getResultMap().put("serialnumber", status);
+			return vo;	
+		}
+		double newbalance = memberAccount.getBalance() - jsonbean.getPirce(); 
+		double newscore = memberAccount.getScore() - jsonbean.getScore();
+		
+		//更新mem_acccount积分和余额
+		String sql = " update C0001_MEM_ACCOUNT t set t.balance = '"+newbalance+"' , t.score = '"+newscore+"' "+
+					 " where t. accountno = '"+jsonbean.getAcccountno()+"' and t.placeno = '"+jsonbean.getPlaceno()+"' "  ;		
+		boolean flag = dao.updatesql(sql, null);
+		if(flag){
+			log.info("换礼成功");
+			vo.setResultcode("11086");
+			vo.setResultmsg("换礼成功");
+			vo.getResultMap().put("serialnumber", status);
+		}else{
+			log.info("换礼失败");
+			vo.setResultcode("11010");
+			vo.setResultmsg("换礼失败");	
+		}
+		return vo;
+	}
+
+}

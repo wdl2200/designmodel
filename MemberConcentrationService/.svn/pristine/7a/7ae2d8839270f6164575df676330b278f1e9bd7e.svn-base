@@ -1,0 +1,184 @@
+/* ========================================================
+* 哈尔滨富利通科技有限公司研发二部
+* 日 期：2018年5月19日
+* 功 能：
+* 作 者：李丹丹
+* 版 本：1.0.0
+* =========================================================
+*/
+package com.cmts.xm.service.member.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.jfree.util.Log;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0001_MEM_ACCOUNT;
+import com.cmts.xm.bean.table.member.C0002_MEM_DAYBOOK;
+import com.cmts.xm.bean.vo.ResultVo;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.AdjustAccountService;
+import com.cmts.xm.utils.ErrorCode;
+@Service
+public class AdjustAccountServiceImpl implements AdjustAccountService {
+	
+	@Autowired
+	DaoFactory dao;
+	
+	
+	@Autowired
+	private CommonService commonService;
+
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public ResultVo insertDaybookUpdateAccount(JsonBean jsonbean,
+			C0001_MEM_ACCOUNT account) throws Exception {
+		Log.info("------会员调级开始-------");
+		ResultVo vo = new ResultVo();
+		String serialnumber = commonService.procMemdaybook(jsonbean);
+		if("-1".equals(serialnumber)){
+			//TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			Log.info("流水订单已存在");
+			vo.setResultcode(ErrorCode.PAYBOOK_PROC_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.PAYBOOK_PROC_ERROR.getMsg());
+			return vo;
+		}
+		vo.getResultMap().put("serialnumber", serialnumber);
+		List<Object> params = new ArrayList<Object>();
+		String updateSql = "update c0001_mem_account t "
+						 + "set t.membertypeno = ? ,"
+						 +"set t.membertypename = ? "
+						 + "t.balance=t.balance + ? ,"
+						 + "t.score=t.score + ? "
+						 + "where accountno = ? "
+						 + "and placeno = ? ";
+		params.add(jsonbean.getMembertypeno());
+		params.add(jsonbean.getMembertypename());
+		params.add(jsonbean.getTraceprice());
+		params.add(jsonbean.getScore());
+		params.add(jsonbean.getAccountno());
+		params.add(jsonbean.getPlaceno());
+		
+		if(dao.updatesql(updateSql, params.toArray())){
+			Log.info("会员调级-插入流水表成功更新会员数据成功");
+			vo.setResultcode(ErrorCode.SUCCESS.getValues());
+			vo.setResultmsg(ErrorCode.SUCCESS.getMsg());
+			return vo;
+		} else {
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			Log.info("会员调级-插入流水表成功更新会员数据失败");
+			vo.setResultcode(ErrorCode.ADJUST_LEVEL_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.ADJUST_LEVEL_ERROR.getMsg());
+			return vo;
+		}
+	}
+
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public ResultVo insertDaybookUpdateScore(JsonBean jsonbean,
+			C0001_MEM_ACCOUNT account) throws Exception {
+		ResultVo vo = new ResultVo();
+		Log.info("------会员调分-------");
+		String serialnumber = commonService.procMemdaybook(jsonbean);
+		if("-1".equals(serialnumber)){
+			//TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			Log.info("流水订单已存在");
+			vo.setResultcode(ErrorCode.PAYBOOK_PROC_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.PAYBOOK_PROC_ERROR.getMsg());
+			return vo;
+		}
+		vo.getResultMap().put("serialnumber", serialnumber);
+		List<Object> params = new ArrayList<Object>();
+		String updateSql = "update c0001_mem_account t set "
+						 + "t.balance = t.balance + ?,"
+						 + "t.score = t.score + ? "
+						 + "where accountno = ? "
+						 + "and placeno = ?";
+		
+		params.add(jsonbean.getTraceprice());
+		params.add(jsonbean.getScore());
+		params.add(jsonbean.getAccountno());
+		params.add(jsonbean.getPlaceno());
+		
+		if(dao.updatesql(updateSql, params.toArray())){
+			Log.info("会员调分-插入流水表成功更新会员数据成功");
+			vo.setResultcode(ErrorCode.SUCCESS.getValues());
+			vo.setResultmsg(ErrorCode.SUCCESS.getMsg());
+			return vo;
+		} else {
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			Log.info("会员调分-插入流水表成功更新会员数据失败");
+			vo.setResultcode(ErrorCode.ADJUST_SCORE_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.ADJUST_SCORE_ERROR.getMsg());
+			return vo;
+		}
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public ResultVo insertDaybookBuyGiftPackage(JsonBean jsonbean,
+			C0001_MEM_ACCOUNT account) throws Exception {
+		ResultVo vo = new ResultVo();
+		Log.info("------购买礼包-------");
+		String serialnumber = commonService.procMemdaybook(jsonbean);
+		if("-1".equals(serialnumber)){
+			//TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			Log.info("流水订单已存在");
+			vo.setResultcode(ErrorCode.PAYBOOK_PROC_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.PAYBOOK_PROC_ERROR.getMsg());
+			return vo;
+		}
+		vo.getResultMap().put("serialnumber", serialnumber);
+		List<Object> params = new ArrayList<Object>();
+		String updateSql = "update c0001_mem_account t set "
+				+ "t.membertypeno = ? ,"
+				+ "t.membertypename = ?,"
+				+ "t.balance = t.balance + ? ,"
+				+ "t.score = t.score + ? ,"
+				+ "t.ckcount = t.ckcount + ?,"
+				+ "t.posamt = t.posamt + ?  ";
+				params.add(jsonbean.getMembertypeno());
+				params.add(jsonbean.getMembertypename());
+				params.add(jsonbean.getTraceprice());
+				params.add(jsonbean.getScore());
+				params.add(jsonbean.getCheckcount());
+				params.add(jsonbean.getPosamt());
+		
+				if(jsonbean.getLeftdate() != null){
+					updateSql = updateSql + ",t.liftdate = ? ";
+					params.add(jsonbean.getLeftdate());
+				}
+				updateSql = updateSql + " where accountno = ? "
+				+ " and placeno = ?";
+				params.add(jsonbean.getAccountno());
+				params.add(jsonbean.getPlaceno());
+				
+				
+		if(dao.updatesql(updateSql, params.toArray())){
+			Log.info("购买礼包-插入流水表成功更新会员数据成功");
+			vo.getResultMap().put("account", commonService.selectMemberAccount(jsonbean.getAccountno(), jsonbean.getPlaceno()));
+			vo.setResultcode(ErrorCode.SUCCESS.getValues());
+			vo.setResultmsg(ErrorCode.SUCCESS.getMsg());
+			return vo;
+		} else {
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			Log.info("购买礼包-更新会员数据失败");
+			vo.setResultcode(ErrorCode.BUYGIFTPACKAGE_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.BUYGIFTPACKAGE_ERROR.getMsg());
+			return vo;
+		}
+	}
+
+}
+

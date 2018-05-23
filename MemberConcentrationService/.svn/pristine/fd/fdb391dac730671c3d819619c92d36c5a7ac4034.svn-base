@@ -1,0 +1,140 @@
+package com.cmts.xm.bean.table.reserved;
+
+import com.cmts.xm.dao.annotation.Id;
+import com.cmts.xm.dao.annotation.Table;
+
+@Table(value = "XM_0731_SALES_RETURN")
+public class XM_0731_SALES_RETURN {
+	
+	/**
+	 * 退货单号
+	 */
+	@Id
+	private String salesReturnNo;
+	
+	/**
+	 * 星美生活订单ID
+	 */
+	private String orderId;
+	
+	/**
+	 * 退货编码
+	 */
+	private String returnRetreatNo;
+	
+	/**
+	 * 快递公司编码
+	 */
+	private String courierCompanyNo;
+	
+	/**
+	 * 快递单号
+	 */
+	private String trackingNumber;
+	
+	/**
+	 * 商品编码
+	 */
+	private String spNo;
+	
+	/**商品数量
+	 * 
+	 */
+	private Long spCount;
+	
+	/**
+	 * 应退金额
+	 */
+	private Double spPrice;
+
+	/**
+	 * 备注
+	 */
+	private String none;
+	
+	/**
+	 * 退货状态（0，未退货  1，已退货  2，不允许退货）
+	 */
+	private Integer salesreState = 0;
+
+	public String getSalesReturnNo() {
+		return salesReturnNo;
+	}
+
+	public void setSalesReturnNo(String salesReturnNo) {
+		this.salesReturnNo = salesReturnNo;
+	}
+
+	public String getOrderId() {
+		return orderId;
+	}
+
+	public void setOrderId(String orderId) {
+		this.orderId = orderId;
+	}
+
+	public String getReturnRetreatNo() {
+		return returnRetreatNo;
+	}
+
+	public void setReturnRetreatNo(String returnRetreatNo) {
+		this.returnRetreatNo = returnRetreatNo;
+	}
+
+	public String getCourierCompanyNo() {
+		return courierCompanyNo;
+	}
+
+	public void setCourierCompanyNo(String courierCompanyNo) {
+		this.courierCompanyNo = courierCompanyNo;
+	}
+
+	public String getTrackingNumber() {
+		return trackingNumber;
+	}
+
+	public void setTrackingNumber(String trackingNumber) {
+		this.trackingNumber = trackingNumber;
+	}
+
+	public String getSpNo() {
+		return spNo;
+	}
+
+	public void setSpNo(String spNo) {
+		this.spNo = spNo;
+	}
+
+	public Long getSpCount() {
+		return spCount;
+	}
+
+	public void setSpCount(Long spCount) {
+		this.spCount = spCount;
+	}
+
+	public Double getSpPrice() {
+		return spPrice;
+	}
+
+	public void setSpPrice(Double spPrice) {
+		this.spPrice = spPrice;
+	}
+
+	public String getNone() {
+		return none;
+	}
+
+	public void setNone(String none) {
+		this.none = none;
+	}
+
+	public Integer getSalesreState() {
+		return salesreState;
+	}
+
+	public void setSalesreState(Integer salesreState) {
+		this.salesreState = salesreState;
+	}
+
+}

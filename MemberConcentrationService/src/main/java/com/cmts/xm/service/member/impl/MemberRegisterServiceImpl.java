@@ -1,0 +1,324 @@
+/* ========================================================
+* 哈尔滨富利通科技有限公司研发二部
+* 日 期：2018-5-19
+* 功能：
+* 作 者：赵斌
+* 版 本：1.0.0
+* =========================================================
+*/
+package com.cmts.xm.service.member.impl;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0001_MEM_ACCOUNT;
+import com.cmts.xm.bean.table.member.C0003_MEM_MEMBER;
+import com.cmts.xm.bean.vo.ResultVo;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.MemberRegisterService;
+import com.cmts.xm.service.member.QueryAccontService;
+import com.cmts.xm.utils.ErrorCode;
+/**
+ * 
+* @FileName MemberRegisterService.java
+* @Package com.cmts.xm.service.member
+* @Description 会员注册接口serviceimpl
+* @Author 赵斌
+* @date 2018-5-19 上午11:16:30 
+* @Version V1.0.1
+ */
+@Service
+public class MemberRegisterServiceImpl implements MemberRegisterService {
+	private static Logger log = Logger.getLogger(MemberRegisterServiceImpl.class);
+	@Autowired
+	private DaoFactory dao;
+	@Autowired
+	private CommonService commonservice;
+	
+	/**
+	 * 
+	 * @Title:        memberRegister 
+	 * @Description:  会员注册开户开卡 
+	 * @param:        @param jsonbean    
+	 * @return:       void    
+	 * @throws 
+	 * @author        赵斌
+	 * @Date          2018-5-19 下午12:15:46
+	 */
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public ResultVo memberRegister(JsonBean jsonbean) throws Exception {
+		ResultVo vo = new ResultVo();
+		String placeno = jsonbean.getPlaceno();
+		String opttype = jsonbean.getOpttype();
+		boolean registerflag = false;
+		//注册
+		if(opttype.substring(0,1).equals("1")){
+			log.info("会员注册");
+			C0003_MEM_MEMBER member = jsonbean.getMember();
+			if(commonservice.selectMemberAdd(member.getMemberno(),member.getIdnum(), placeno)==null){
+				member.setPlaceno(placeno);
+				dao.insert(member);
+			}else{
+				log.error("会员编号或证件号已存在");
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				vo.setResultcode(ErrorCode.MEMBER_EXIST_ERROR.getValues());
+				vo.setResultmsg(ErrorCode.MEMBER_EXIST_ERROR.getMsg());
+				return vo;
+			}
+		}else{
+			//非注册
+			registerflag = true;
+		}
+		//开户和开卡
+		if(opttype.substring(1,2).equals("1") || opttype.substring(2,3).equals("1")){
+			C0001_MEM_ACCOUNT memberaccount = jsonbean.getAccount();
+			memberaccount.setPlaceno(placeno);
+			if(registerflag){
+				log.info("开户开卡验证会员");
+				//非注册
+				C0003_MEM_MEMBER memberkhkk = commonservice.selectMember(memberaccount.getMemberno(), placeno);
+				if(memberkhkk==null){
+					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+					vo.setResultcode(ErrorCode.MEMBER_NOEXIST_ERROR.getValues());
+					vo.setResultmsg(ErrorCode.MEMBER_NOEXIST_ERROR.getMsg());
+					log.error("会员不存在");
+					return vo;
+				}
+			}
+				if(opttype.substring(1,2).equals("1") && opttype.substring(2,3).equals("1")){
+					log.info("会员开户开卡");
+					C0001_MEM_ACCOUNT khkk = commonservice.selectMemberAccount(memberaccount.getAccountno(), placeno);
+					if(khkk!=null){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.ACCOUNT_EXIST_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.ACCOUNT_EXIST_ERROR.getMsg());
+						log.error("会员账户已存在");
+						return vo;
+					}
+					if(StringUtils.isBlank(memberaccount.getCardno())){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.CARDNO_NULL_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.CARDNO_NULL_ERROR.getMsg());
+						log.error("卡号为空");
+						return vo;
+					}
+					if(StringUtils.isBlank(memberaccount.getMemoryid())){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.MEMORYID_NULL_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.MEMORYID_NULL_ERROR.getMsg());
+						log.error("芯片号为空");
+						return vo;
+					}
+					C0001_MEM_ACCOUNT khkkcard = commonservice.selectMemberAccountCardno(memberaccount.getCardno(), placeno);
+					if(khkkcard!=null){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.CARDNO_EXIST_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.CARDNO_EXIST_ERROR.getMsg());
+						log.error("卡号已存在");
+						return vo;
+					}
+					C0001_MEM_ACCOUNT khkkmemoryid = commonservice.selectMemberAccountMemoryid(memberaccount.getMemoryid(), placeno);
+					if(khkkmemoryid!=null){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.MEMORYID_EXIST_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.MEMORYID_EXIST_ERROR.getMsg());
+						log.error("芯片号已存在");
+						return vo;
+					}
+					dao.insert(memberaccount);
+					
+				}else if(opttype.substring(1,2).equals("1") && !opttype.substring(2,3).equals("1")){
+					log.info("会员开户");
+					C0001_MEM_ACCOUNT kh = commonservice.selectMemberAccount(memberaccount.getAccountno(), placeno);
+					if(kh!=null){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.ACCOUNT_EXIST_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.ACCOUNT_EXIST_ERROR.getMsg());
+						log.error("会员账户已存在");
+						return vo;
+					}
+					dao.insert(memberaccount);
+				}else if(!opttype.substring(1,2).equals("1") && opttype.substring(2,3).equals("1")){
+					log.info("会员开卡");
+					C0001_MEM_ACCOUNT kk = commonservice.selectMemberAccount(memberaccount.getAccountno(), placeno);
+					if(kk==null){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.ACCOUNT_NOEXIST_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.ACCOUNT_NOEXIST_ERROR.getMsg());
+						log.error("会员账户不存在");
+						return vo;
+					}
+					if(StringUtils.isNotBlank(kk.getUsable()) && kk.getUsable().equals("1")){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.ACCOUNT_USABLE_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.ACCOUNT_USABLE_ERROR.getMsg());
+						log.error("会员账户禁用");
+						return vo;
+					}
+					if(StringUtils.isNotBlank(kk.getCardno())){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.ACCOUNT_CARDNO_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.ACCOUNT_CARDNO_ERROR.getMsg());
+						log.error("会员已开卡");
+						return vo;
+					}
+					if(StringUtils.isBlank(memberaccount.getCardno())){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.CARDNO_NULL_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.CARDNO_NULL_ERROR.getMsg());
+						log.error("卡号为空");
+						return vo;
+					}
+					if(StringUtils.isBlank(memberaccount.getMemoryid())){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.MEMORYID_NULL_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.MEMORYID_NULL_ERROR.getMsg());
+						log.error("芯片号为空");
+						return vo;
+					}
+					C0001_MEM_ACCOUNT kkcard = commonservice.selectMemberAccountCardno(memberaccount.getCardno(), placeno);
+					if(kkcard!=null){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.CARDNO_EXIST_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.CARDNO_EXIST_ERROR.getMsg());
+						log.error("卡号已存在");
+						return vo;
+					}
+					C0001_MEM_ACCOUNT kkmemoryid = commonservice.selectMemberAccountMemoryid(memberaccount.getMemoryid(), placeno);
+					if(kkmemoryid!=null){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.MEMORYID_EXIST_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.MEMORYID_EXIST_ERROR.getMsg());
+						log.error("芯片号已存在");
+						return vo;
+					}
+					if(kk.getBalance()<0){
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						vo.setResultcode(ErrorCode.ACCOUNT_NOTENOUGH_ERROR.getValues());
+						vo.setResultmsg(ErrorCode.ACCOUNT_NOTENOUGH_ERROR.getMsg());
+						log.error("余额不足");
+						return vo;
+					}
+					dao.update(memberaccount);
+				}
+		}
+		if(opttype.substring(1,2).equals("1") || opttype.substring(2,3).equals("1")){
+			log.info("会员开户开卡流水新增");
+			String status = commonservice.procMemdaybook(jsonbean);
+			if(StringUtils.isNotBlank(status) && status.equals("-1")){
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				vo.setResultcode(ErrorCode.PAYBOOK_PROC_ERROR.getValues());
+				vo.setResultmsg(ErrorCode.PAYBOOK_PROC_ERROR.getMsg());
+				log.error("流水订单已存在");
+				return vo;
+			}else{
+				vo.getResultMap().put("serialnumber", status);
+			}
+		}
+		vo.setResultcode(ErrorCode.SUCCESS.getValues());
+		vo.setResultmsg(ErrorCode.SUCCESS.getMsg());
+		return vo;
+	}
+	/**
+	 * 
+	 * @Title:        memberRegisterInsert 
+	 * @Description:  修改会员
+	 * @param:        @param member    
+	 * @return:       void    
+	 * @throws 
+	 * @author        赵斌
+	 * @Date          2018-5-19 上午11:22:43
+	 */
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public ResultVo memberRegisterUpdate(JsonBean jsonbean) throws Exception  {
+		log.info("会员资料修改");
+		ResultVo vo = new ResultVo();
+		String placeno = jsonbean.getPlaceno();
+		C0003_MEM_MEMBER member = jsonbean.getMember();
+		if(commonservice.selectMember(member.getMemberno(), placeno)!=null){
+			if(commonservice.selectMemberUpdate(member.getMemberno(),member.getIdnum(), placeno)==null){
+				member.setPlaceno(placeno);
+				dao.update(member);
+			}else{
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				vo.setResultcode(ErrorCode.IDNUM_EXIST_ERROR.getValues());
+				vo.setResultmsg(ErrorCode.IDNUM_EXIST_ERROR.getMsg());
+				log.error("会员证件号已存在");
+				return vo;
+			}
+		}else{
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode(ErrorCode.MEMBER_NOEXIST_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.MEMBER_NOEXIST_ERROR.getMsg());
+			log.error("会员不存在");
+			return vo;
+		}
+		vo.setResultcode(ErrorCode.SUCCESS.getValues());
+		vo.setResultmsg(ErrorCode.SUCCESS.getMsg());
+		return vo;
+	}
+	/**
+	 * 
+	 * @Title:        memberRegisterInsert 
+	 * @Description:  新增会员
+	 * @param:        @param member    
+	 * @return:       void    
+	 * @throws 
+	 * @author        赵斌
+	 * @Date          2018-5-19 上午11:22:43
+	 */
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public ResultVo memberRegisterSplitGroup(JsonBean jsonbean) throws Exception  {
+		log.info("会员拆集体");
+		ResultVo vo = new ResultVo();
+		String placeno = jsonbean.getPlaceno();
+		C0003_MEM_MEMBER member = jsonbean.getMember();
+		String memberno = member.getMemberno();
+		if(commonservice.selectMemberAdd(memberno,member.getIdnum(), placeno)==null){
+			member.setPlaceno(placeno);
+			dao.insert(member);
+		}else{
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode(ErrorCode.MEMBER_EXIST_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.MEMBER_EXIST_ERROR.getMsg());
+			log.error("会员编号或证件号已存在");
+			return vo;
+		}
+		C0001_MEM_ACCOUNT memberaccount = jsonbean.getAccount();
+		String memberaccountno = memberaccount.getAccountno();
+		if(commonservice.selectMemberAccount(memberaccount.getAccountno(), placeno)!=null){
+			C0001_MEM_ACCOUNT oldmemberaccount = commonservice.selectMemberAccount(memberaccountno, placeno);
+			if(StringUtils.isNotBlank(oldmemberaccount.getGmemberno())){
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				vo.setResultcode(ErrorCode.ACCOUNT_GMEMBERNO_ERROR.getValues());
+				vo.setResultmsg(ErrorCode.ACCOUNT_GMEMBERNO_ERROR.getMsg());
+				log.error("会员账户已拆分");
+				return vo;
+			}
+			String gmemberno = oldmemberaccount.getMemberno();
+			StringBuffer sql = new StringBuffer("update C0001_MEM_ACCOUNT t set t.memberno=? ,t.gmemberno=? where t.accountno=? and t.placeno=?");
+			dao.updatesql(sql.toString(),  new Object[]{memberno,gmemberno,memberaccountno,placeno});
+		}else{
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode(ErrorCode.ACCOUNT_NOEXIST_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.ACCOUNT_NOEXIST_ERROR.getMsg());
+			log.error("会员账户不存在");
+			return vo;
+		}
+		vo.setResultcode(ErrorCode.SUCCESS.getValues());
+		vo.setResultmsg(ErrorCode.SUCCESS.getMsg());
+		return vo;
+	}
+
+}
+

@@ -1,0 +1,49 @@
+package com.cmts.xm.bean.table.reserved;
+
+import com.cmts.xm.dao.annotation.Id;
+import com.cmts.xm.dao.annotation.Table;
+
+@Table(value = "XM_0729_BUYER")
+public class XM_0729_BUYER {
+
+	/**
+	 * 买家唯一标示
+	 */
+	@Id
+	private String custid;
+	
+	/**
+	 * 买家名称
+	 */
+	private String name;
+	
+	/**
+	 * 买家手机号
+	 */
+	private String mobile;
+
+	public String getCustid() {
+		return custid;
+	}
+
+	public void setCustid(String custid) {
+		this.custid = custid;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getMobile() {
+		return mobile;
+	}
+
+	public void setMobile(String mobile) {
+		this.mobile = mobile;
+	}
+	
+}

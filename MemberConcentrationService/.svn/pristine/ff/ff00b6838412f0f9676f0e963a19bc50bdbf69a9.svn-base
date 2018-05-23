@@ -1,0 +1,59 @@
+package com.cmts.xm.utils;
+
+public enum ErrorCode {
+	SUCCESS("0",""),//成功
+	PARAM_LOST_ERROR("001","缺少参数"),
+	CINEMA_LOST_ERROR("002","影院不存在"),
+	VALICATE_CODE_ERROR("003","验证码错误"),
+	SYSTEM_ERROR("004","程序内部错误"),
+	ACCOUNT_LOST_ERROR("005","账号不存在"),
+	ACCOUNT_NOTENOUGH_ERROR("006","账号金额不足"),
+	PAYBOOK_PROC_ERROR("007","流水订单已存在"),
+	LIFEDATE_PROC_ERROR("008","处理续期出错"),
+	PASSWORD_PROC_ERROR("009","修改密码出错"),
+	SCORE_NOTENOUGH_ERROR("010","账号积分不足"),
+	MEMBER_EXIST_ERROR("011","会员编号或证件号已存在"),
+	MEMBER_NOEXIST_ERROR("012","会员不存在"),
+	ACCOUNT_EXIST_ERROR("013","会员账户已存在"),
+	ACCOUNT_NOEXIST_ERROR("014","会员账户不存在"),
+	CARDNO_NULL_ERROR("015","卡号为空"),
+	CARDNO_EXIST_ERROR("016","卡号已存在"),
+	MEMORYID_NULL_ERROR("017","芯片号为空"),
+	MEMORYID_EXIST_ERROR("018","芯片号已存在"),
+	IDNUM_EXIST_ERROR("019","会员证件号已存在"),
+	CHANGECARD_PROC_ERROR("020","修改换卡出错"),
+	BUCARD_PROC_ERROR("021","修改补卡出错"),
+	ACTIVATECARD_PROC_ERROR("022","修改激活出错"),
+	ACCOUNT_POSAMT_ERROR("023","礼包金额不足"),
+	ACCOUNT_CKCOUNT_ERROR("024","兑换次数不足"),
+	ACCOUNT_GMEMBERNO_ERROR("025","会员账户已拆分"),
+	ADJUST_LEVEL_ERROR("026","会员调级-更新会员数据失败"),
+	ADJUST_SCORE_ERROR("027","会员调分-更新会员数据失败"),
+	BUYGIFTPACKAGE_ERROR("028","购买礼包-更新会员数据失败"),
+	ACCOUNT_USABLE_ERROR("029","账户禁用"),
+	ACCOUNT_CARDNO_ERROR("030","该账户已开卡"),
+	ACCOUNT_LOSS_NOACTIVATE_ERROR("031","帐户已挂失或未开卡");
+	
+	
+	private String values;
+	
+	private String msg;
+
+	private ErrorCode(String values, String msg) {
+		this.values = values;
+		this.msg = msg;
+	}
+
+	public String getValues() {
+		return values;
+	}
+
+	public String getMsg() {
+		return msg;
+	}
+
+	public void setMsg(String msg) {
+		this.msg = msg;
+	}
+
+}

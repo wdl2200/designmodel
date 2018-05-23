@@ -1,0 +1,118 @@
+package com.cmts.xm.service.member.impl;
+
+import java.util.List;
+
+import org.jfree.util.Log;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0001_MEM_ACCOUNT;
+import com.cmts.xm.bean.table.member.C0002_MEM_DAYBOOK;
+import com.cmts.xm.bean.vo.ResultVo;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.dao.util.DateUtil;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.ReportLossService;
+
+/**
+ * 
+ * @Description: 挂失
+ * @ClassName: CommonServiceImpl
+ * @author: liuc
+ * @date: 2018年05月19日 下午13:56:14  
+ *
+ */
+@Service
+public class ReportLossServiceImpl implements ReportLossService {
+	
+	@Autowired
+	private DaoFactory dao;
+
+	@Autowired
+	private CommonService commonService;
+	
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public ResultVo reportLoss(JsonBean jsonBean)throws Exception {
+		ResultVo vo = new ResultVo();
+		String acccountno = jsonBean.getAcccountno();
+		List<C0002_MEM_DAYBOOK> daybook = jsonBean.getDaybook();
+		String placeno = jsonBean.getPlaceno();
+		Double traceprice =jsonBean.getTraceprice();
+		Double score = jsonBean.getScore();
+		String verifyInfo = jsonBean.getVerifyInfo();
+		//判断是否有该影院
+		boolean cinemaCount = commonService.selectCinemaNo(placeno);
+		if( !cinemaCount){
+			vo.setResultcode("1");
+			vo.setResultmsg("电影院不存在");
+			return vo;
+		}
+		//判断加密
+		if(DateUtil.validationDate(placeno,verifyInfo)){
+			vo.setResultmsg("加密验证错误");
+			vo.setResultcode("1");
+			return vo;
+		}
+		//判断传入参数
+			if(null == acccountno || "".equals(acccountno) || 
+			   null == daybook    || 
+			   null == placeno 	  || "".equals(placeno)    || 
+			   null == traceprice || "".equals(traceprice) || 
+			   null == score      || "".equals(score)      || 
+			   null == verifyInfo || "".equals(verifyInfo) ){		
+			vo.setResultcode("1");
+			vo.setResultmsg("缺少参数");
+			return vo;
+		}
+		//判断是否有该会员
+		C0001_MEM_ACCOUNT memAccount = commonService.selectMemberAccount(acccountno, placeno);
+		if(null == memAccount){
+			vo.setResultcode("1");
+			vo.setResultmsg("会员不存在");
+			return vo;
+		}
+		//判断余额
+		if((memAccount.getBalance()-traceprice)<0){
+			vo.setResultcode("1");
+			vo.setResultmsg("会员卡余额不足");
+			return vo;
+		}
+		//判断积分余额
+		if((memAccount.getScore()-score)<0){
+			vo.setResultcode("1");
+			vo.setResultmsg("会员卡积分不足");
+			return vo;
+		}
+		//判断流水是否存在,不存在则插入
+		String result=commonService.procMemdaybook(jsonBean);
+		if(result.equals("-1")){
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode("1");
+			vo.setResultmsg("daybook处理失败");
+			return vo;
+		}
+		StringBuffer sql=  new StringBuffer(  " update c0001_mem_account t  set t.cardno = '', t.memoryid='', t.usable='1', t.balance=t.balance-?,  "
+											+ " t.score=t.score-?  "
+											+ " where placeno =?  and accountno = ?");
+		Log.info(sql);
+		boolean boo= dao.updatesql(sql.toString(), new Object[]{traceprice,score,placeno,acccountno});
+		if(boo){
+			vo.setResultcode("0");
+			vo.getResultMap().put("serialnumber", result);
+			vo.setResultmsg("成功");
+			return vo;
+		}
+		else{
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode("1");
+			vo.setResultmsg("失败");
+			return vo;
+		}
+	}
+
+}

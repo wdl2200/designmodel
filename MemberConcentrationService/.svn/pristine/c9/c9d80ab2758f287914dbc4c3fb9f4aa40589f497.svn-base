@@ -1,0 +1,247 @@
+package com.cmts.xm.service.common.impl;
+
+import java.util.Arrays;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.cmts.xm.bean.table.common.T1005_Cinema;
+import com.cmts.xm.bean.table.reserved.C_SYS_SYSTEMUSER;
+import com.cmts.xm.bean.table.reserved.XM_0731_SALES_RETURN;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.service.common.CommonService;
+
+/**
+ * 
+ * @Description: 公共方法Service实现
+ * @ClassName: CommonServiceImpl
+ * @author: 王淼 
+ * @date: 2017年11月17日 上午9:56:14  
+ *
+ */
+@Service
+public class CommonServiceImpl implements CommonService {
+	
+	@Autowired
+	private DaoFactory dao;
+
+	/**
+	 * 
+	 * @Description: 根据一组影院上报编码查询一组影院编码
+	 * @Title: selectCinemaNos  
+	 * @author: 王淼 
+	 * @Date: 2017年11月20日 下午2:51:17
+	 *
+	 * @param placeNo
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public String selectCinemaNos(String placeNo) throws Exception {
+		StringBuffer sql = new StringBuffer("SELECT wm_concat(T1005.CINEMANO) CINEMANO FROM T1005_CINEMA T1005 WHERE T1005.PLACENO IN ( ");
+		sql.append(placeNo);
+		sql.append(" )");
+		return dao.getValue(sql.toString(), new Object[]{});
+	}
+
+	/**
+	 * 
+	 * @Description: 判断影城是否存在，存在返回cinemaNo否则返回0
+	 * @Title: judgeCinemaNoIsExist  
+	 * @author: 王淼 
+	 * @Date: 2017年11月21日 上午11:55:56
+	 *
+	 * @param placeNo
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public String judgeCinemaNoIsExist(String placeNo) throws Exception {
+		StringBuffer sql = new StringBuffer("SELECT T1005.CINEMANO FROM T1005_CINEMA T1005 WHERE T1005.PLACENO = ?");
+		T1005_Cinema cinemano = dao.findByWhere(sql.toString(), new Object[]{placeNo}, T1005_Cinema.class);
+		if(null == cinemano){
+			return "0";
+		}
+		return cinemano.getCinemano();
+	}
+
+	/**
+	 * 
+	 * @Description: 判断买家信息是否存在
+	 * @Title: judgeBuyerIsExist  
+	 * @author: 王淼 
+	 * @Date: 2017年11月21日 下午1:55:38
+	 *
+	 * @param custid
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public Boolean judgeBuyerIsExist(String custid) throws Exception {
+		StringBuffer sql = new StringBuffer("SELECT COUNT(*) FROM XM_0729_BUYER XM0729 WHERE XM0729.CUSTID = ?");
+		Integer count = dao.getCount(sql.toString(), new Object[]{custid});
+		if(count > 0){
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * 
+	 * @Description: 判断订单是否存在
+	 * @Title: judgeOrderIsExist  
+	 * @author: 王淼 
+	 * @Date: 2017年11月21日 下午1:56:14
+	 *
+	 * @param orderId
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public Boolean judgeOrderIsExist(String orderId) throws Exception {
+		StringBuffer sql = new StringBuffer("SELECT COUNT(*) FROM XM_0727_ORDER XM0727 WHERE XM0727.ORDERID = ?");
+		Integer count = dao.getCount(sql.toString(), new Object[]{orderId});
+		if(count > 0){
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * 
+	 * @Description: 判断订单状态是否正确
+	 * @Title: selectOrderStateIsCorrect  
+	 * @author: 王淼 
+	 * @Date: 2017年11月22日 上午10:03:05
+	 *
+	 * @param orderId
+	 * @param orderState
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public Boolean selectOrderStateIsCorrect(String orderId, Integer[] orderState) throws Exception {
+		StringBuffer sql = new StringBuffer("SELECT XM0727.ORDERSTATE FROM XM_0727_ORDER XM0727 WHERE XM0727.ORDERID = ?");
+		Integer state = Integer.parseInt(dao.getValue(sql.toString(), new Object[]{orderId}));
+		Integer flag = Arrays.binarySearch(orderState, state);
+		if(flag >= 0){
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * 
+	 * @Description: 判断商品数量是否可退
+	 * @Title: judgeOrderSpIsReturnable  
+	 * @author: 王淼 
+	 * @Date: 2017年11月22日 下午1:06:10
+	 *
+	 * @param orderId
+	 * @param spNo
+	 * @param spCount
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public Boolean judgeOrderSpIsReturnable(String orderId, String spNo, Integer spCount) throws Exception {
+		StringBuffer sql = new StringBuffer("SELECT (XM0728.QUANTITY - ?) QUANTITY FROM XM_0728_ORDER_SP XM0728 WHERE XM0728.ORDERID = ? AND XM0728.SPNO = ?");
+		Integer quantity = Integer.parseInt(dao.getValue(sql.toString(), new Object[]{spCount, orderId, spNo}));
+		if(quantity >= 0){
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * 
+	 * @Description: 查询退货编码
+	 * @Title: selectSalesReturn  
+	 * @author: 王淼 
+	 * @Date: 2017年11月22日 下午6:15:29
+	 *
+	 * @param returnRetreatNo
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public String selectSalesReturn(String returnRetreatNo) throws Exception {
+		StringBuffer sql = new StringBuffer("SELECT XM0731.SALESRETURNNO from XM_0731_SALES_RETURN XM0731 WHERE XM0731.RETURNRETREATNO = ?");
+		XM_0731_SALES_RETURN salesReturn =  dao.findByWhere(sql.toString(), new Object[]{returnRetreatNo}, XM_0731_SALES_RETURN.class);
+		if(null == salesReturn){
+			return "0";
+		}
+		return salesReturn.getSalesReturnNo();
+	}
+
+	/**
+	 * 
+	 * @Description: 查询订单是否存在
+	 * @Title: judgeOrderIsExist  
+	 * @author: 王淼 
+	 * @Date: 2018年1月8日 上午10:33:27
+	 *
+	 * @param orderId
+	 * @param scode
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public Boolean judgeOrderIsExist(String orderId, String scode) throws Exception {
+		StringBuffer sql = new StringBuffer("SELECT COUNT(*) FROM XM_0727_ORDER XM0727 WHERE (XM0727.ORDERID = ? OR XM0727.PICKCODE = ?) AND XM0727.STORECODE = ?");
+		Integer count = dao.getCount(sql.toString(), new Object[]{orderId, orderId, scode});
+		if(count > 0){
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * 
+	 * @Description: 查询影院名称
+	 * @Title: selectCinemaName  
+	 * @author: 王淼 
+	 * @Date: 2018年1月8日 下午4:31:41
+	 *
+	 * @param scode
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public String selectCinemaName(String scode) throws Exception {
+		StringBuffer sql = new StringBuffer("SELECT T1005.CINEMANAME FROM T1005_CINEMA T1005 WHERE T1005.PLACENO = ?");
+		return dao.getValue(sql.toString(), new Object[]{scode});
+	}
+
+	/**
+	 * 
+	 * @Description: 根据员工编码查询员工姓名
+	 * @Title: selectUserName  
+	 * @author: 王淼 
+	 * @Date: 2018年3月12日 下午5:23:49
+	 *
+	 * @param userCode
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public String selectUserName(String userCode) throws Exception {
+		StringBuffer sql = new StringBuffer("SELECT C_S_S.USERNAME FROM C_SYS_SYSTEMUSER C_S_S WHERE C_S_S.USERCODE = ?");
+		C_SYS_SYSTEMUSER sysTemuser = dao.findByWhere(sql.toString(), new Object[]{userCode}, C_SYS_SYSTEMUSER.class);
+		if(null == sysTemuser){
+			return "";
+		}
+		return sysTemuser.getUserName();
+	}
+
+}

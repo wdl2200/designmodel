@@ -1,0 +1,135 @@
+package com.cmts.xm.bean.table.reserved;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 
+ * @Description: 解析星美生活订单Bean
+ * @ClassName: ReservedOrderBean
+ * @author: 王淼 
+ * @date: 2017年11月21日 下午2:20:00  
+ *
+ */
+public class ReservedOrderBean {
+
+	/**
+	 * 订单中的商品信息
+	 */
+	private List<Map<String, Object>> goods = new ArrayList<Map<String,Object>>();
+	
+	/**
+	 * 发票信息
+	 */
+	private Map<String, Object> invoice = new HashMap<String, Object>();
+	
+	/**
+	 * 提取方式信息
+	 */
+	private Map<String, Object> trans = new HashMap<String, Object>();
+	
+	/**
+	 * 订单id
+	 */
+	private String orderid = "";
+	
+	/**
+	 * 主订单的订单id
+	 */
+	private String mainorderid = "";
+	
+	/**
+	 * 买家留言
+	 */
+	private String buyermsg = "";
+	
+	/**
+	 * 发货门店的门店编码
+	 */
+	private String storecode = "";
+	
+	/**
+	 * 推荐购买的门店员工的工号，用于提成计算。可能不传或为空串
+	 */
+	private String seller = "";
+	
+	/**
+	 * 支付时间： yyyy-MM-dd HH:mm:ss
+	 */
+	private String paytime = "";
+
+	public List<Map<String, Object>> getGoods() {
+		return goods;
+	}
+
+	public void setGoods(List<Map<String, Object>> goods) {
+		this.goods = goods;
+	}
+
+	public Map<String, Object> getInvoice() {
+		return invoice;
+	}
+
+	public void setInvoice(Map<String, Object> invoice) {
+		this.invoice = invoice;
+	}
+
+	public String getOrderid() {
+		return orderid;
+	}
+
+	public void setOrderid(String orderid) {
+		this.orderid = orderid;
+	}
+
+	public String getMainorderid() {
+		return mainorderid;
+	}
+
+	public void setMainorderid(String mainorderid) {
+		this.mainorderid = mainorderid;
+	}
+
+	public String getBuyermsg() {
+		return buyermsg;
+	}
+
+	public void setBuyermsg(String buyermsg) {
+		this.buyermsg = buyermsg;
+	}
+
+	public String getStorecode() {
+		return storecode;
+	}
+
+	public void setStorecode(String storecode) {
+		this.storecode = storecode;
+	}
+
+	public Map<String, Object> getTrans() {
+		return trans;
+	}
+
+	public void setTrans(Map<String, Object> trans) {
+		this.trans = trans;
+	}
+
+	public String getSeller() {
+		return seller;
+	}
+
+	public void setSeller(String seller) {
+		this.seller = seller;
+	}
+
+	public String getPaytime() {
+		return paytime;
+	}
+
+	public void setPaytime(String paytime) {
+		this.paytime = paytime;
+	}
+	
+}

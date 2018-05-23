@@ -1,0 +1,398 @@
+package com.cmts.xm.bean.table.reserved;
+
+import com.cmts.xm.dao.annotation.Table;
+
+@Table(value = "XM_0727_ORDER")
+public class XM_0727_ORDER {
+
+	/**
+	 * 星美生活订单id
+	 */
+	private String orderId;
+	
+	/**
+	 * 星美生活主订单的订单id
+	 */
+	private String mainOrderId;
+	
+	/**
+	 * 买家留言
+	 */
+	private String buyerMsg;
+	
+	/**
+	 * 发货门店的门店编码
+	 */
+	private String storeCode;
+	
+	/**
+	 * 买家唯一标示
+	 */
+	private String custId;
+	
+	/**
+	 * 收货人名称
+	 */
+	private String name;
+	
+	/**
+	 * 收货人手机号
+	 */
+	private String mobile;
+	
+	/**
+	 * 收货地址所在省份
+	 */
+	private String province;
+	
+	/**
+	 * 收货地址所在市
+	 */
+	private String city;
+	
+	/**
+	 * 收货地址所在区
+	 */
+	private String area;
+	
+	/**
+	 * 收货地址邮编
+	 */
+	private String postZip;
+	
+	/**
+	 * 收货详细地址
+	 */
+	private String addr;
+	
+	/**
+	 * 收货人额外信息，如身份证号
+	 */
+	private String extra;
+	
+	/**
+	 * 发票类型
+	 */
+	private String type;
+	
+	/**
+	 * 发票抬头
+	 */
+	private String title;
+	
+	/**
+	 * 抬头类型：0:个人，1：企业
+	 */
+	private Integer titleType;
+	
+	/**
+	 * 企业税号，当titletype=1时必填
+	 */
+	private String taxNum;
+	
+	/**
+	 * 订单状态（0， 待发货 1，已发货 2，已完成：买家收货 3，已取消 4，待退货：买家退货 ）
+	 */
+	private Integer orderState = 0;
+	
+	/**
+	 * 影院编码
+	 */
+	private String cinemaNo;
+	
+	/**
+	 * 取消订单编码
+	 */
+	private String cancelOrderNo;
+	
+	/**
+	 * 0，快递  1，门店自取  2，配送
+	 */
+	private Integer transType; 
+	
+	/**
+	 * 当TRANSTYPE=1时，保存自提时间区间
+	 */
+	private String transInfo;
+	
+	/**
+	 * 收货时间
+	 */
+	private String consigneeDate;
+	
+	/**
+	 * 订单日期(商城推送订单的日期)
+	 */
+	private String orderTime;
+	
+	/**
+	 * 订单备注
+	 */
+	private String none;
+	
+	/**
+	 * 自提码
+	 */
+	private String pickCode;
+	
+	/**
+	 * 员工编码
+	 */
+	private String userCode;
+	
+	/**
+	 * 员工姓名
+	 */
+	private String userName;
+	
+	/**
+	 * 交易日期
+	 */
+	private String payDate;
+	
+	/**
+	 * 交易时间
+	 */
+	private String payTime;
+
+	public String getOrderId() {
+		return orderId;
+	}
+
+	public void setOrderId(String orderId) {
+		this.orderId = orderId;
+	}
+
+	public String getMainOrderId() {
+		return mainOrderId;
+	}
+
+	public void setMainOrderId(String mainOrderId) {
+		this.mainOrderId = mainOrderId;
+	}
+
+	public String getBuyerMsg() {
+		return buyerMsg;
+	}
+
+	public void setBuyerMsg(String buyerMsg) {
+		this.buyerMsg = buyerMsg;
+	}
+
+	public String getStoreCode() {
+		return storeCode;
+	}
+
+	public void setStoreCode(String storeCode) {
+		this.storeCode = storeCode;
+	}
+
+	public String getCustId() {
+		return custId;
+	}
+
+	public void setCustId(String custId) {
+		this.custId = custId;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getMobile() {
+		return mobile;
+	}
+
+	public void setMobile(String mobile) {
+		this.mobile = mobile;
+	}
+
+	public String getProvince() {
+		return province;
+	}
+
+	public void setProvince(String province) {
+		this.province = province;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public String getArea() {
+		return area;
+	}
+
+	public void setArea(String area) {
+		this.area = area;
+	}
+
+	public String getPostZip() {
+		return postZip;
+	}
+
+	public void setPostZip(String postZip) {
+		this.postZip = postZip;
+	}
+
+	public String getAddr() {
+		return addr;
+	}
+
+	public void setAddr(String addr) {
+		this.addr = addr;
+	}
+
+	public String getExtra() {
+		return extra;
+	}
+
+	public void setExtra(String extra) {
+		this.extra = extra;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public Integer getTitleType() {
+		return titleType;
+	}
+
+	public void setTitleType(Integer titleType) {
+		this.titleType = titleType;
+	}
+
+	public String getTaxNum() {
+		return taxNum;
+	}
+
+	public void setTaxNum(String taxNum) {
+		this.taxNum = taxNum;
+	}
+
+	public Integer getOrderState() {
+		return orderState;
+	}
+
+	public void setOrderState(Integer orderState) {
+		this.orderState = orderState;
+	}
+
+	public String getCinemaNo() {
+		return cinemaNo;
+	}
+
+	public void setCinemaNo(String cinemaNo) {
+		this.cinemaNo = cinemaNo;
+	}
+
+	public String getCancelOrderNo() {
+		return cancelOrderNo;
+	}
+
+	public void setCancelOrderNo(String cancelOrderNo) {
+		this.cancelOrderNo = cancelOrderNo;
+	}
+
+	public Integer getTransType() {
+		return transType;
+	}
+
+	public void setTransType(Integer transType) {
+		this.transType = transType;
+	}
+
+	public String getTransInfo() {
+		return transInfo;
+	}
+
+	public void setTransInfo(String transInfo) {
+		this.transInfo = transInfo;
+	}
+
+	public String getConsigneeDate() {
+		return consigneeDate;
+	}
+
+	public void setConsigneeDate(String consigneeDate) {
+		this.consigneeDate = consigneeDate;
+	}
+
+	public String getOrderTime() {
+		return orderTime;
+	}
+
+	public void setOrderTime(String orderTime) {
+		this.orderTime = orderTime;
+	}
+
+	public String getNone() {
+		return none;
+	}
+
+	public void setNone(String none) {
+		this.none = none;
+	}
+
+	public String getPickCode() {
+		return pickCode;
+	}
+
+	public void setPickCode(String pickCode) {
+		this.pickCode = pickCode;
+	}
+
+	public String getUserCode() {
+		return userCode;
+	}
+
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getPayDate() {
+		return payDate;
+	}
+
+	public void setPayDate(String payDate) {
+		this.payDate = payDate;
+	}
+
+	public String getPayTime() {
+		return payTime;
+	}
+
+	public void setPayTime(String payTime) {
+		this.payTime = payTime;
+	}
+	
+}

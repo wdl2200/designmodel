@@ -1,0 +1,129 @@
+package com.cmts.xm.bean.table.reserved;
+
+import com.cmts.xm.dao.annotation.Table;
+
+@Table(value = "XM_0728_ORDER_SP")
+public class XM_0728_ORDER_SP {
+
+	/**
+	 * 星美生活订单id
+	 */
+	private String orderId;
+
+	/**
+	 * 商品编码
+	 */
+	private String spNo;
+
+	/**
+	 * 商品名称
+	 */
+	private String spName;
+
+	/**
+	 * 购买数量
+	 */
+	private Long quantity;
+
+	/**
+	 * 商城中商品单价
+	 */
+	private Double price;
+
+	/**
+	 * 备注
+	 */
+	private String extra;
+
+	/**
+	 * 商品总价
+	 */
+	private Double allPrice;
+	
+	/**
+	 * 销售提成
+	 */
+	private Double commissionPrice;
+	
+	/**
+	 * 提成规则编码
+	 */
+	private String rulesno;
+	
+	public void getCalculateAllPrice(){
+		allPrice = quantity * price;
+	}
+
+	public String getOrderId() {
+		return orderId;
+	}
+
+	public void setOrderId(String orderId) {
+		this.orderId = orderId;
+	}
+
+	public String getSpNo() {
+		return spNo;
+	}
+
+	public void setSpNo(String spNo) {
+		this.spNo = spNo;
+	}
+
+	public String getSpName() {
+		return spName;
+	}
+
+	public void setSpName(String spName) {
+		this.spName = spName;
+	}
+
+	public Long getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(Long quantity) {
+		this.quantity = quantity;
+	}
+
+	public Double getPrice() {
+		return price;
+	}
+
+	public void setPrice(Double price) {
+		this.price = price;
+	}
+
+	public String getExtra() {
+		return extra;
+	}
+
+	public void setExtra(String extra) {
+		this.extra = extra;
+	}
+
+	public Double getAllPrice() {
+		return allPrice;
+	}
+
+	public void setAllPrice(Double allPrice) {
+		this.allPrice = allPrice;
+	}
+
+	public Double getCommissionPrice() {
+		return commissionPrice;
+	}
+
+	public void setCommissionPrice(Double commissionPrice) {
+		this.commissionPrice = commissionPrice;
+	}
+
+	public String getRulesno() {
+		return rulesno;
+	}
+
+	public void setRulesno(String rulesno) {
+		this.rulesno = rulesno;
+	}
+	
+}

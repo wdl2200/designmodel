@@ -1,0 +1,47 @@
+<%@ page language="java" contentType="text/html; charset=utf-8"
+    pageEncoding="utf-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<title>Insert title here</title>
+
+
+<script type="text/javascript">
+function aaa(){
+	var postdata=document.getElementById("postdata").innerHTML;
+	//postdata=JSON.stringify(postdata);
+	alert(postdata)
+	$.ajax({
+		url :"http://localhost:8080/MemberConcentrationService/reportLoss",
+		type : "post",
+		contentType : "application/x-www-form-urlencoded; charset=UTF-8",
+		async: false,
+		data : {
+			"postdata" : postdata
+		}
+		//,dataType : "string",
+		/*success : function(data){
+			alert(data)
+		}*/
+	});
+}
+
+</script>
+</head>
+<!-- "daybook":[{"accountno":"1","bxamt":0,"bxtracetypeno":"1","centertraceno":"1","cinemaname":"1","ckcount":0,"discount":0,"featureno":"1", -->
+<!--    "feeprice":0,"feetracetypeno":"1","filmno":"1","giftno":"1","membertypename":"1","membertypeno":"1","oldbalance":0,"oldckcount":0, -->
+<!--    "oldposamt":0,"oldprice":0,"oldscore":0,"paytraceno":"1","placeno":"1","posamt":0,"price":0,"score":0,"ticketsum":0, -->
+<!--    "tracedate":"1","tracememo":"1","traceno":"1000000001","traceprice":0,"tracetime":"1","tracetypename":"2", -->
+<!--    "tracetypeno":"2","username":"1"}], -->
+<body>
+<!--    <input type="text" value="{'acccountno':'',daybook:[1,2,3],placeno:'',traceprice:'','score':''}"  id="postdata"/> -->
+   <textarea id="postdata" rows="20px" cols="100px" >
+   {"acccountno":"666",
+   "daybook":[{"centertraceno":"1","cinemaname":"1","placeno":"1","traceno":"1000000001","tracetime":"20180519","tracetypeno":"2","username":"刘超"}],
+   "placeno":"999999","traceprice":"10","score":"10","verifyInfo":"ce9cbf83a31aede4"}</textarea>
+   <input  type="button"  onclick="aaa()"  value="点击发送json"/>
+</body>
+</html>

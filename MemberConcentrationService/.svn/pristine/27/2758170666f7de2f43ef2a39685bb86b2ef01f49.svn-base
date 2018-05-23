@@ -1,0 +1,119 @@
+package com.cmts.xm.web.reserved;
+
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.cmts.xm.bean.vo.ReservedVo;
+import com.cmts.xm.service.reserved.ReservedInventoryService;
+import com.cmts.xm.utils.HttpUtils;
+
+import net.sf.json.JSONObject;
+
+/**
+ * 
+ * @Description: 保存星美生活订单接口
+ * @ClassName: QueryPlaceOrders
+ * @author: 王淼 
+ * @date: 2017年11月20日 下午7:37:14  
+ *
+ */
+@SuppressWarnings({ "all" })
+@Controller
+@RequestMapping(value = "/")
+public class InsertPlaceOrders {
+	
+	private static Logger log = Logger.getLogger(InsertPlaceOrders.class);
+	
+	@Autowired
+	private ReservedInventoryService reservedInventoryService;
+	
+	@RequestMapping(value = "/placeOrders" , produces = "application/json; charset=utf-8")
+	public @ResponseBody String placeOrders(HttpServletRequest request, HttpServletResponse response){
+		ReservedVo vo = new ReservedVo();
+		
+		try {
+			String orders = URLDecoder.decode(request.getParameter("orders"), "UTF-8");
+			
+			log.info("传入参数__orders=" + orders);
+			
+			if(null == orders || "".equals(orders)){
+				log.error("缺少相应参数__orders=" + orders);
+				vo.setCode("1001002");
+				vo.setMsg("缺少相应参数__orders=" + orders);
+				return JSONObject.fromObject(vo).toString();
+			}
+			
+			String requestStr = reservedInventoryService.placeOrdersInsertInto(orders);
+			if(!"OK".equals(requestStr)){
+				log.error(requestStr);
+				vo.setCode("1001003");
+				vo.setMsg(requestStr);
+				return JSONObject.fromObject(vo).toString();
+			}
+			
+			log.info("操作成功");
+			vo.setCode("0");
+			vo.setMsg("操作成功");
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			vo.setCode("1001001");
+			vo.setMsg("接口异常:" + e.getMessage());
+		}
+		
+		return JSONObject.fromObject(vo).toString();
+	}
+	
+	public static void main(String[] args) throws Exception{
+		/*String orders = "[{\"buyer\":{\"custid\":\"00000001\",\"name\":\"测试买家\",\"mobile\":\"12345678998\"},"
+					  + "\"receiver\":{\"name\":\"测试买家\",\"mobile\":\"12345678998\",\"province\":\"测试省\","
+					  + "\"city\":\"测试市\",\"area\":\"测试区\",\"postzip\":\"150020\",\"addr\":\"测试地址\","
+					  + "\"extra\":\"测试额外信息\"},\"orders\":[{\"orderid\":\"1000000001\",\"mainorderid\":\"10000001\","
+					  + "\"buyermsg\":\"测试\",\"seller\":\"10001\",\"storecode\":\"52020401\",\"paytime\":\"2018-03-14 11:11:11\",\"goods\":[{\"goodscode\":\"90015279\","
+					  + "\"goodsname\":\"德芙丝滑牛奶巧克力牛奶味43g\",\"quantity\":10,\"price\":5,\"extra\":\"测试商品备注\"},"
+					  + "{\"goodscode\":\"90015898\",\"goodsname\":\"王老吉正宗凉茶310ml\",\"quantity\":10,\"price\":5,"
+					  + "\"extra\":\"测试商品备注\"}],\"trans\":{\"type\":0,\"info\":\"\"},\"invoice\":{\"type\":\"增值税发票\",\"title\":\"测试发票头\",\"titletype\":0}},"
+					  + "{\"orderid\":\"1000000002\",\"mainorderid\":\"10000001\",\"buyermsg\":\"测试\",\"seller\":\"10002\",\"storecode\":\"52020401\",\"paytime\":\"2018-03-14 11:11:11\","
+					  + "\"goods\":[{\"goodscode\":\"90015279\",\"goodsname\":\"德芙丝滑牛奶巧克力牛奶味43g\",\"quantity\":10,\"price\":5,"
+					  + "\"extra\":\"测试商品备注\"},{\"goodscode\":\"90015898\",\"goodsname\":\"王老吉正宗凉茶310ml\",\"quantity\":10,"
+					  + "\"price\":5,\"extra\":\"测试商品备注\"}],\"trans\":{\"type\":0,\"info\":\"\"},\"invoice\":{\"type\":\"增值税发票\",\"title\":\"测试发票头\","
+					  + "\"titletype\":0}}]},{\"buyer\":{\"custid\":\"00000002\",\"name\":\"测试买家1\",\"mobile\":\"12345678998\"},"
+					  + "\"receiver\":{\"name\":\"测试买家1\",\"mobile\":\"12345678998\",\"province\":\"测试省1\",\"city\":\"测试市1\","
+					  + "\"area\":\"测试区1\",\"postzip\":\"150020\",\"addr\":\"测试地址1\",\"extra\":\"测试额外信息1\"},"
+					  + "\"orders\":[{\"orderid\":\"1000000003\",\"mainorderid\":\"10000002\",\"buyermsg\":\"测试1\",\"seller\":\"10003\",\"storecode\":\"52020401\",\"paytime\":\"2018-03-14 11:11:11\","
+					  + "\"goods\":[{\"goodscode\":\"90015279\",\"goodsname\":\"德芙丝滑牛奶巧克力牛奶味43g\",\"quantity\":10,\"price\":5,"
+					  + "\"extra\":\"测试商品备注\"},{\"goodscode\":\"90015898\",\"goodsname\":\"王老吉正宗凉茶310ml\",\"quantity\":10,\"price\":5,"
+					  + "\"extra\":\"测试商品备注\"}],\"trans\":{\"type\":2,\"info\":\"111111,\"},\"invoice\":{\"type\":\"增值税发票\",\"title\":\"测试发票头\",\"titletype\":0}},"
+					  + "{\"orderid\":\"1000000004\",\"mainorderid\":\"10000002\",\"buyermsg\":\"测试\",\"seller\":\"10004\",\"storecode\":\"52020401\",\"paytime\":\"2018-03-14 11:11:11\","
+					  + "\"goods\":[{\"goodscode\":\"90015279\",\"goodsname\":\"德芙丝滑牛奶巧克力牛奶味43g\",\"quantity\":10,\"price\":5,"
+					  + "\"extra\":\"测试商品备注\"},{\"goodscode\":\"90015898\",\"goodsname\":\"王老吉正宗凉茶310ml\",\"quantity\":10,\"price\":5,"
+					  + "\"extra\":\"测试商品备注\"}],\"trans\":{\"type\":0,\"info\":\"\"},\"invoice\":{\"type\":\"普通税发票\",\"title\":\"测试发票头1\",\"titletype\":1,"
+					  + "\"taxnum\":\"112345678654894578945\"}}]}]";*/
+		String orders = "[{\"buyer\":{\"custid\":\"3131000000396860\",\"mobile\":\"15500000003\",\"name\":\"xmlife03\"},\"orders\":[{\"buyermsg\":"
+				+ "\"\",\"goods\":[{\"goodscode\":\"90018234\",\"goodsname\":\"咪咪虾味条20g\",\"price\":2.22,\"quantity\":2}],\"invoice\":{\"taxnum\":"
+				+ "\"\",\"title\":\"\",\"titletype\":0,\"type\":0},\"mainorderid\":\"2018031915201555280025\",\"orderid\":\"2018031915201555280025\","
+				+ "\"paytime\":\"2018-03-19 15:20:32\",\"seller\":\"99999\",\"storecode\":\"52020401\",\"trans\":{\"info\":\"07322595,\",\"type\":2}}],"
+				+ "\"receiver\":{\"addr\":\"广州大学城门卫老魏\",\"area\":\"番禺\",\"city\":\"广州\",\"mobile\":\"15500000003\",\"name\":\"xmlife03\","
+				+ "\"postzip\":\"\",\"province\":\"广东\"}}]";
+		
+		Map<String,Object> paraMap = new HashMap<String, Object>();
+		paraMap.put("orders", URLEncoder.encode(orders, "UTF-8"));
+		
+		String IMPL_URL = "http://10.10.4.104:8077/ChainService/placeOrders";
+		String jsonString = HttpUtils.http(IMPL_URL, paraMap);
+		
+		System.out.println(jsonString);
+		 
+	}
+
+}

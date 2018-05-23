@@ -1,0 +1,145 @@
+package com.cmts.xm.bean.table.reserved;
+
+import com.cmts.xm.utils.DateUtils;
+
+/**
+ * 
+ * @Description: 星美生活订单发货表
+ * @ClassName: XM_0732_DELIVER_GOODS
+ * @author: 王淼 
+ * @date: 2017年11月27日 下午1:52:40  
+ *
+ */
+public class XM_0732_DELIVER_GOODS {
+	
+	/**
+	 * 发货单号
+	 */
+	private String deliverGoodsNo = DateUtils.stampToDate();
+	
+	/**
+	 * 星美生活订单ID
+	 */
+	private String orderId;
+	
+	/**
+	 * 发货方式（0，快递  1，自提  2，配送）
+	 */
+	private Integer deliverGoodsType = 1;
+	
+	/**
+	 * 快递公司编码
+	 */
+	private String courierCompanyNo;
+	
+	/**
+	 * 快递单号/配送单号
+	 */
+	private String trackingNumber;
+	
+	/**
+	 * 配送员
+	 */
+	private String trackingUser;
+	
+	/**
+	 * 配送员电话
+	 */
+	private String trackingPhone;
+	
+	/**
+	 * 备注
+	 */
+	private String none = "买家影城提货";
+	
+	/**
+	 * 发货时间
+	 */
+	private String deliverDate = DateUtils.simpleDateFormat("");
+	
+	/**
+	 * 实际运费
+	 */
+	private Double trackingMoney;
+
+	public String getDeliverGoodsNo() {
+		return deliverGoodsNo;
+	}
+
+	public void setDeliverGoodsNo(String deliverGoodsNo) {
+		this.deliverGoodsNo = deliverGoodsNo;
+	}
+
+	public String getOrderId() {
+		return orderId;
+	}
+
+	public void setOrderId(String orderId) {
+		this.orderId = orderId;
+	}
+
+	public Integer getDeliverGoodsType() {
+		return deliverGoodsType;
+	}
+
+	public void setDeliverGoodsType(Integer deliverGoodsType) {
+		this.deliverGoodsType = deliverGoodsType;
+	}
+
+	public String getCourierCompanyNo() {
+		return courierCompanyNo;
+	}
+
+	public void setCourierCompanyNo(String courierCompanyNo) {
+		this.courierCompanyNo = courierCompanyNo;
+	}
+
+	public String getTrackingNumber() {
+		return trackingNumber;
+	}
+
+	public void setTrackingNumber(String trackingNumber) {
+		this.trackingNumber = trackingNumber;
+	}
+
+	public String getTrackingUser() {
+		return trackingUser;
+	}
+
+	public void setTrackingUser(String trackingUser) {
+		this.trackingUser = trackingUser;
+	}
+
+	public String getTrackingPhone() {
+		return trackingPhone;
+	}
+
+	public void setTrackingPhone(String trackingPhone) {
+		this.trackingPhone = trackingPhone;
+	}
+
+	public String getNone() {
+		return none;
+	}
+
+	public void setNone(String none) {
+		this.none = none;
+	}
+
+	public String getDeliverDate() {
+		return deliverDate;
+	}
+
+	public void setDeliverDate(String deliverDate) {
+		this.deliverDate = deliverDate;
+	}
+
+	public Double getTrackingMoney() {
+		return trackingMoney;
+	}
+
+	public void setTrackingMoney(Double trackingMoney) {
+		this.trackingMoney = trackingMoney;
+	}
+
+}

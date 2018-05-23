@@ -1,0 +1,88 @@
+/* ========================================================
+* 哈尔滨富利通科技有限公司研发二部
+* 日 期：2018年5月19日
+* 功能：
+* 作 者：李庆国
+* 版 本：1.0.0
+* =========================================================
+*/
+package com.cmts.xm.web.member;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.cmts.xm.bean.table.member.C0003_MEM_MEMBER;
+import com.cmts.xm.bean.vo.InitDataAccount;
+import com.cmts.xm.bean.vo.InitDataVo;
+import com.cmts.xm.bean.vo.ResultVo;
+import com.cmts.xm.service.init.InitDataService;
+
+/**
+ * @FileName InitDataController.java
+ * @Package com.cmts.xm.web.member
+ * @Description TODO【用一句话描述该文件做什么】
+ * @Author 李庆国
+ * @date 2018年5月19日 下午2:15:35 
+ * @Version V1.0.1
+ */
+public class InitDataController {
+	
+	private static Logger log = Logger.getLogger(InitDataController.class);
+	
+	@Autowired
+	private InitDataService service;
+	
+	@RequestMapping(value = "/initData" , produces = "application/json; charset=utf-8")
+	public @ResponseBody String initData(String postdata, HttpServletRequest request, HttpServletResponse response){
+		log.info("初始化数据接口处理开始：");
+		log.info("初始化数据传入参数：" + postdata);
+		ResultVo vo = new ResultVo();
+		
+		try {
+			Map<String, Class> classMap = new HashMap<String, Class>();  
+			  
+			classMap.put("account", InitDataAccount.class);
+			classMap.put("member", C0003_MEM_MEMBER.class);
+			
+			InitDataVo jsonbean = (InitDataVo) JSONObject.toBean(JSONObject.fromObject(postdata), InitDataVo.class,classMap);
+		
+			service.initData(jsonbean);
+			
+			vo.setResultcode("0");
+			vo.setResultmsg("操作成功");
+			Map<String,Object> returnMap = new HashMap<String, Object>();
+			returnMap.put("pagecount", jsonbean.getPagecount());
+			
+		} catch (Exception e) {
+			log.info(e.getMessage());
+			vo.setResultcode("100500");
+			vo.setResultmsg("系统异常");
+			return vo.toChangeResultJson();
+		}
+		return vo.toChangeResultJson();
+	}
+	
+	public static void main(String[] args) {
+		String a = "{\"account\":[{\"placeno\":\"888888\",\"member\":{\"placeno\":\"666666\"}},{\"placeno\":\"999999\"}],\"pagecount\":\"1\"}".toLowerCase();
+		Map<String, Class> classMap = new HashMap<String, Class>();  
+		  
+		classMap.put("account", InitDataAccount.class);
+		classMap.put("member", C0003_MEM_MEMBER.class);
+		
+		InitDataVo jsonbean = (InitDataVo) JSONObject.toBean(JSONObject.fromObject(a), InitDataVo.class,classMap);
+		
+		System.out.println(jsonbean);
+	}
+
+}
+

@@ -1,0 +1,80 @@
+package com.cmts.xm.service.reserved;
+
+import com.cmts.xm.bean.vo.ReservedVo;
+
+/**
+ * 
+ * @Description: 星美生活订单接口Service
+ * @ClassName: ReservedinventoryService
+ * @author: 王淼 
+ * @date: 2017年11月16日 上午10:52:21  
+ *
+ */
+public interface ReservedInventoryService {
+	
+	/**
+	 * 
+	 * @Description: 保存星美生活订单入口
+	 * @Title: placeOrdersInsertInto  
+	 * @author: 王淼 
+	 * @Date: 2017年11月21日 上午11:48:43
+	 *
+	 * @param jsonString
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public String placeOrdersInsertInto(String orders) throws Exception;
+	
+	/**
+	 * 
+	 * @Description: 买家取消订单
+	 * @Title: placeOrdersUpdateForCancelInto  
+	 * @author: 王淼 
+	 * @Date: 2017年11月22日 上午9:57:04
+	 *
+	 * @param orderId
+	 * @param orderState
+	 * @param data
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public ReservedVo placeOrdersUpdateForCancelInto(String orderId, Integer orderState, String data) throws Exception;
+	
+	/**
+	 * 
+	 * @Description: 买家确认收货
+	 * @Title: placeOrdersUpdateForReceiveInto  
+	 * @author: 王淼 
+	 * @Date: 2017年11月22日 上午10:56:17
+	 *
+	 * @param orderId
+	 * @param orderState
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public ReservedVo placeOrdersUpdateForReceiveInto(String orderId, Integer orderState) throws Exception;
+	
+	/**
+	 * 
+	 * @Description: 买家退货
+	 * @Title: placeOrdersUpdateForReturnInto  
+	 * @author: 王淼 
+	 * @Date: 2017年11月22日 上午11:09:57
+	 *
+	 * @param orderId
+	 * @param orderState
+	 * @param data
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public ReservedVo placeOrdersUpdateForReturnInto(String orderId, Integer orderState, String data) throws Exception;
+	
+}

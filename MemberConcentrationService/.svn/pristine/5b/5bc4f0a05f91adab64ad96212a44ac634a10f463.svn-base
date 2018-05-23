@@ -1,0 +1,125 @@
+package com.cmts.xm.bean.vo;
+
+public class AccountVo extends ResultVo{
+	private String acCountNo;//帐户号
+	private String  memberNo;// 会员号
+	private String  cardNo;//当前会员卡号
+	private String memoryId;//会员卡内部号
+	private String  memberTypeNo;//帐户级别编号
+	private String  passWord;//会员密码
+	private String  lifeDate;//有效期限
+	private double  balance;//余额
+	private double  score;//积分
+	private double  scoreSum;//期内积分
+	private String usable;//可用标志
+	private String  gmemberNo;//集体会员编号
+	private double moneyAdd;//账户总充值额
+	private String cinemaName;//会员账户影院
+	private Integer  ckCount;//享有兑换次数
+	private double  posAmt;//卖品礼包金额 
+	private String placeNo ;// 影城编码
+	public String getAcCountNo() {
+		return acCountNo;
+	}
+	public void setAcCountNo(String acCountNo) {
+		this.acCountNo = acCountNo;
+	}
+	public String getMemberNo() {
+		return memberNo;
+	}
+	public void setMemberNo(String memberNo) {
+		this.memberNo = memberNo;
+	}
+	public String getCardNo() {
+		return cardNo;
+	}
+	public void setCardNo(String cardNo) {
+		this.cardNo = cardNo;
+	}
+	public String getMemoryId() {
+		return memoryId;
+	}
+	public void setMemoryId(String memoryId) {
+		this.memoryId = memoryId;
+	}
+	public String getMemberTypeNo() {
+		return memberTypeNo;
+	}
+	public void setMemberTypeNo(String memberTypeNo) {
+		this.memberTypeNo = memberTypeNo;
+	}
+	public String getPassWord() {
+		return passWord;
+	}
+	public void setPassWord(String passWord) {
+		this.passWord = passWord;
+	}
+	public String getLifeDate() {
+		return lifeDate;
+	}
+	public void setLifeDate(String lifeDate) {
+		this.lifeDate = lifeDate;
+	}
+	public double getBalance() {
+		return balance;
+	}
+	public void setBalance(double balance) {
+		this.balance = balance;
+	}
+	public double getScore() {
+		return score;
+	}
+	public void setScore(double score) {
+		this.score = score;
+	}
+	public double getScoreSum() {
+		return scoreSum;
+	}
+	public void setScoreSum(double scoreSum) {
+		this.scoreSum = scoreSum;
+	}
+	public String getUsable() {
+		return usable;
+	}
+	public void setUsable(String usable) {
+		this.usable = usable;
+	}
+	public String getGmemberNo() {
+		return gmemberNo;
+	}
+	public void setGmemberNo(String gmemberNo) {
+		this.gmemberNo = gmemberNo;
+	}
+	public double getMoneyAdd() {
+		return moneyAdd;
+	}
+	public void setMoneyAdd(double moneyAdd) {
+		this.moneyAdd = moneyAdd;
+	}
+	public String getCinemaName() {
+		return cinemaName;
+	}
+	public void setCinemaName(String cinemaName) {
+		this.cinemaName = cinemaName;
+	}
+	public Integer getCkCount() {
+		return ckCount;
+	}
+	public void setCkCount(Integer ckCount) {
+		this.ckCount = ckCount;
+	}
+	public double getPosAmt() {
+		return posAmt;
+	}
+	public void setPosAmt(double posAmt) {
+		this.posAmt = posAmt;
+	}
+	public String getPlaceNo() {
+		return placeNo;
+	}
+	public void setPlaceNo(String placeNo) {
+		this.placeNo = placeNo;
+	}
+	
+	
+}

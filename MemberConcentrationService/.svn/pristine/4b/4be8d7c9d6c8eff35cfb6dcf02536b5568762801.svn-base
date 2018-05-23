@@ -1,0 +1,86 @@
+package member;
+
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.cmts.xm.dao.util.DateUtil;
+import com.cmts.xm.utils.HttpUtils;
+import com.cmts.xm.utils.Md5;
+import com.cmts.xm.web.member.ConsumptionAndRechargeController;
+
+import net.sf.json.JSONObject;
+
+/**
+ * 
+ * @Description: 消费充值测试
+ * @ClassName: ConsumptionAndRechargeTest
+ * @author: 王淼 
+ * @date: 2018年5月19日 下午2:31:30  
+ *
+ */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = "classpath:applicationContext.xml")
+public class ConsumptionAndRechargeTest {
+	
+	@Autowired
+	private ConsumptionAndRechargeController consumptionAndRechargeController;
+	
+	/**
+	 * 
+	 * @Description: 消费
+	 * @Title: consumptionTest  
+	 * @author: 王淼 
+	 * @Date: 2018年5月19日 下午2:31:52
+	 *
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	@Test
+	public void consumptionTest() throws Exception{
+		Md5 md5 = new Md5();
+		String myverifyInfo = md5.getMD5ofStr("888888" + DateUtil.simpleDateFormat("yyyy-MM-dd") + "cmts2016clkey").substring(8, 24).toLowerCase();
+		Map<String, Object> hashMap = new HashMap<String, Object>();
+		hashMap.put("placeno", "888888");
+		hashMap.put("pirce", "10.5");
+		hashMap.put("score", "0");
+		hashMap.put("checkcount", "0");
+		hashMap.put("posamt", "0");
+		hashMap.put("verifyinfo", myverifyInfo);
+		hashMap.put("acccountno", "1");
+		String json = "[{\"accountno\":\"1\",\"bxamt\":0,\"bxtracetypeno\":\"1\",\"centertraceno\":\"1\",\"cinemaname\":\"1\",\"ckcount\":0,"
+				    + "\"discount\":0,\"featureno\":\"1\",\"feeprice\":0,\"feetracetypeno\":\"1\",\"filmno\":\"1\",\"giftno\":\"1\","
+				    + "\"membertypename\":\"1\",\"membertypeno\":\"1\",\"oldbalance\":0,\"oldckcount\":0,\"oldposamt\":0,\"oldprice\":0,"
+				    + "\"oldscore\":0,\"paytraceno\":\"1\",\"placeno\":\"1\",\"posamt\":0,\"price\":0,\"score\":0,\"ticketsum\":0,"
+				    + "\"tracedate\":\"1\",\"tracememo\":\"1\",\"traceno\":\"1000000001\",\"traceprice\":0,\"tracetime\":\"1\",\"tracetypename\":\"2\","
+				    + "\"tracetypeno\":\"2\",\"username\":\"1\"}]";
+		hashMap.put("daybook", json);
+		System.out.println(JSONObject.fromObject(hashMap).toString());
+		
+		System.out.println(consumptionAndRechargeController.consumption(JSONObject.fromObject(hashMap).toString(), null, null));
+	}
+	
+	/**
+	 * 
+	 * @Description: 充值
+	 * @Title: rechargeTest  
+	 * @author: 王淼 
+	 * @Date: 2018年5月19日 下午2:32:00
+	 *
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	@Test
+	public void rechargeTest() throws Exception{
+		
+	}
+
+}

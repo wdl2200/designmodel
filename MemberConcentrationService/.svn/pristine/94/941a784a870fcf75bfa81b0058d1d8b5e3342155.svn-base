@@ -1,0 +1,346 @@
+/* ========================================================
+* 哈尔滨富利通科技有限公司研发二部
+* 日 期：2018年5月19日
+* 功 能：
+* 作 者：李丹丹
+* 版 本：1.0.0
+* =========================================================
+*/
+package com.cmts.xm.web.member;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0001_MEM_ACCOUNT;
+import com.cmts.xm.bean.table.member.C0002_MEM_DAYBOOK;
+import com.cmts.xm.bean.vo.ResultVo;
+import com.cmts.xm.dao.util.DateUtil;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.AdjustAccountService;
+import com.cmts.xm.utils.HttpUtils;
+import com.cmts.xm.utils.Md5;
+
+
+@SuppressWarnings({ "all" })
+@Controller
+@RequestMapping(value = "/")
+public class AdjustAccountController {
+private static Logger log = Logger.getLogger(AdjustAccountController.class);
+	
+	@Autowired
+	private CommonService commonService;
+	
+	@Autowired AdjustAccountService adjustService;
+	
+	
+	@RequestMapping(value = "/adjustlevel" , produces = "application/json; charset=utf-8")
+	public @ResponseBody String adjustlevel(String postdata,HttpServletRequest request, HttpServletResponse response){
+		ResultVo vo = new ResultVo();
+		if(postdata == null){
+			log.info("传入数据为空");
+		}
+		Map<String, Class<C0002_MEM_DAYBOOK>> retMap = new HashMap<String, Class<C0002_MEM_DAYBOOK>>();  
+		retMap.put("daybook", C0002_MEM_DAYBOOK.class);
+		JsonBean jsonbean = (JsonBean) JSONObject.toBean(JSONObject.fromObject(postdata), JsonBean.class, retMap);
+
+		try {
+			log.info("传入参数：acccountno=" + jsonbean.getAcccountno());
+			log.info("传入参数：daybook=" + jsonbean.getDaybook());
+			log.info("传入参数：placeno=" + jsonbean.getPlaceno());
+			log.info("传入参数：membertype=" + jsonbean.getMembertypeno());
+			log.info("传入参数：traceprice=" + jsonbean.getTraceprice());
+			log.info("传入参数：score=" + jsonbean.getScore());
+			
+			
+			if(null == jsonbean.getAcccountno() || 
+			   null == jsonbean.getDaybook() || 
+			   null == jsonbean.getPlaceno() ||
+			   null == jsonbean.getMembertypeno() ||
+			   null == jsonbean.getTraceprice() ||
+			   null == jsonbean.getScore() ||
+			   "".equals(jsonbean.getAcccountno()) ||
+			   "".equals(jsonbean.getDaybook()) ||
+			   "".equals(jsonbean.getPlaceno()) ||
+			   "".equals(jsonbean.getMembertypeno()) ||
+			   "".equals(jsonbean.getTraceprice()) ||
+			   "".equals(jsonbean.getScore())){
+			log.error("缺少相应参数：acccountno=" + jsonbean.getAcccountno() + 
+					  " daybook=" + jsonbean.getDaybook() +
+					  " placeno=" + jsonbean.getPlaceno() +
+					  " membertype=" + jsonbean.getMembertypeno() +
+					  " traceprice=" + jsonbean.getTraceprice() +
+					  " score=" + jsonbean.getScore());
+			vo.setResultcode("");
+			vo.setResultmsg("缺少相应参数：acccountno=" + jsonbean.getAcccountno() + 
+					  " daybook=" + jsonbean.getDaybook() +
+					  " placeno=" + jsonbean.getPlaceno() +
+					  " membertype=" + jsonbean.getMembertypeno() +
+					  " traceprice=" + jsonbean.getTraceprice() +
+					  " score=" + jsonbean.getScore());
+			return vo.toChangeResultJson();
+			}
+			
+			if(DateUtil.validationDate(jsonbean.getPlaceno(), jsonbean.getVerifyInfo())){
+				vo.setResultcode("");
+				vo.setResultmsg("加密验证错误");
+				return vo.toChangeResultJson();
+			}
+			
+			if(!commonService.selectCinemaNo(jsonbean.getPlaceno())){
+				vo.setResultmsg("电影院不存在");
+				return vo.toChangeResultJson();
+			}
+			
+			C0001_MEM_ACCOUNT memAccount = commonService.selectMemberAccount(jsonbean.getAcccountno(), jsonbean.getPlaceno());
+			if(null == memAccount){
+				vo.setResultcode("");
+				vo.setResultmsg("会员不存在");
+				return vo.toChangeResultJson();
+			}
+			
+			if((memAccount.getBalance() - jsonbean.getTraceprice()) < 0){
+				vo.setResultmsg("会员账户余额不足");
+				return vo.toChangeResultJson();
+			}
+			
+			C0001_MEM_ACCOUNT account = adjustService.getAccount(jsonbean.getAcccountno());
+			vo = adjustService.insertDaybookUpdateAccount(jsonbean, account);
+			
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			vo.setResultcode("");
+			vo.setResultmsg("接口异常:" + e.getMessage());
+		}
+		
+		return JSONObject.fromObject(vo).toString();
+	}
+	
+	@RequestMapping(value = "/adjustscore" , produces = "application/json; charset=utf-8")
+	public @ResponseBody String adjustscore(String postdata,HttpServletRequest request, HttpServletResponse response){
+		ResultVo vo = new ResultVo();
+		if(postdata == null){
+			log.info("传入数据为空");
+		}
+		Map<String, Class<C0002_MEM_DAYBOOK>> retMap = new HashMap<String, Class<C0002_MEM_DAYBOOK>>();  
+		retMap.put("daybook", C0002_MEM_DAYBOOK.class);
+		JsonBean jsonbean = (JsonBean) JSONObject.toBean(JSONObject.fromObject(postdata), JsonBean.class, retMap);
+		
+		try {
+			log.info("传入参数：acccountno=" + jsonbean.getAcccountno());
+			log.info("传入参数：daybook=" + jsonbean.getDaybook());
+			log.info("传入参数：placeno=" + jsonbean.getPlaceno());
+			log.info("传入参数：traceprice=" + jsonbean.getTraceprice());
+			log.info("传入参数：score=" + jsonbean.getScore());
+			
+			if(null == jsonbean.getAcccountno() || 
+					   null == jsonbean.getDaybook() || 
+					   null == jsonbean.getPlaceno() ||
+					   null == jsonbean.getTraceprice() ||
+					   null == jsonbean.getScore() ||
+					   "".equals(jsonbean.getAcccountno()) ||
+					   "".equals(jsonbean.getDaybook()) ||
+					   "".equals(jsonbean.getPlaceno()) ||
+					   "".equals(jsonbean.getTraceprice()) ||
+					   "".equals(jsonbean.getScore())){
+					log.error("缺少相应参数：acccountno=" + jsonbean.getAcccountno() + 
+							  " daybook=" + jsonbean.getDaybook() +
+							  " placeno=" + jsonbean.getPlaceno() +
+							  " traceprice=" + jsonbean.getTraceprice() +
+							  " score=" + jsonbean.getScore());
+					vo.setResultcode("");
+					vo.setResultmsg("缺少相应参数：acccountno=" + jsonbean.getAcccountno() + 
+							  " daybook=" + jsonbean.getDaybook() +
+							  " placeno=" + jsonbean.getPlaceno() +
+							  " traceprice=" + jsonbean.getTraceprice() +
+							  " score=" + jsonbean.getScore());
+					return vo.toChangeResultJson();
+			}
+			
+			if(DateUtil.validationDate(jsonbean.getPlaceno(), jsonbean.getVerifyInfo())){
+				vo.setResultcode("");
+				vo.setResultmsg("加密验证错误");
+				return vo.toChangeResultJson();
+			}
+			
+			if(!commonService.selectCinemaNo(jsonbean.getPlaceno())){
+				vo.setResultmsg("电影院不存在");
+				return vo.toChangeResultJson();
+			}
+			
+			C0001_MEM_ACCOUNT memAccount = commonService.selectMemberAccount(jsonbean.getAcccountno(), jsonbean.getPlaceno());
+			if(null == memAccount){
+				vo.setResultcode("");
+				vo.setResultmsg("会员不存在");
+				return vo.toChangeResultJson();
+			}
+			
+			C0001_MEM_ACCOUNT account = adjustService.getAccount(jsonbean.getAcccountno());
+			vo = adjustService.insertDaybookUpdateScore(jsonbean, account);
+			
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			vo.setResultcode("");
+			vo.setResultmsg("接口异常:" + e.getMessage());
+		}
+		return JSONObject.fromObject(vo).toString();
+	
+	}
+	
+	@RequestMapping(value = "/buygiftpackage" , produces = "application/json; charset=utf-8")
+	public @ResponseBody String buygiftpackage(String postdata,HttpServletRequest request, HttpServletResponse response){
+		ResultVo vo = new ResultVo();
+		if(postdata == null){
+			log.info("传入数据为空");
+		}
+		
+		Map<String, Class<C0002_MEM_DAYBOOK>> retMap = new HashMap<String, Class<C0002_MEM_DAYBOOK>>();  
+		retMap.put("daybook", C0002_MEM_DAYBOOK.class);
+		JsonBean jsonbean = (JsonBean) JSONObject.toBean(JSONObject.fromObject(postdata), JsonBean.class, retMap);
+		
+		try {
+			log.info("传入参数：acccountno=" + jsonbean.getAcccountno());
+			log.info("传入参数：daybook=" + jsonbean.getDaybook());
+			log.info("传入参数：placeno=" + jsonbean.getPlaceno());
+			log.info("传入参数：membertype=" + jsonbean.getMembertypeno());
+			log.info("传入参数：traceprice=" + jsonbean.getTraceprice());
+			log.info("传入参数：score=" + jsonbean.getScore());
+			log.info("传入参数：checkcount=" + jsonbean.getCheckcount());
+			log.info("传入参数：posamt=" + jsonbean.getPosamt());
+			
+			if(null == jsonbean.getAcccountno() || 
+			   null == jsonbean.getDaybook() || 
+			   null == jsonbean.getPlaceno() ||
+			   null == jsonbean.getMembertypeno() ||
+			   null == jsonbean.getTraceprice() ||
+			   null == jsonbean.getScore() ||
+			   null == jsonbean.getCheckcount() ||
+			   null == jsonbean.getPosamt() ||
+			   "".equals(jsonbean.getAcccountno()) ||
+			   "".equals(jsonbean.getDaybook()) ||
+			   "".equals(jsonbean.getPlaceno()) ||
+			   "".equals(jsonbean.getMembertypeno()) ||
+			   "".equals(jsonbean.getTraceprice()) ||
+			   "".equals(jsonbean.getScore()) ||
+			   "".equals(jsonbean.getCheckcount()) ||
+			   "".equals(jsonbean.getPosamt())){
+			log.error("缺少相应参数：acccountno=" + jsonbean.getAcccountno() + 
+					  " daybook=" + jsonbean.getDaybook() +
+					  " placeno=" + jsonbean.getPlaceno() +
+					  " membertype=" + jsonbean.getMembertypeno() +
+					  " traceprice=" + jsonbean.getTraceprice() +
+					  " score=" + jsonbean.getScore() + 
+					  " Checkcount=" + jsonbean.getCheckcount() + 
+					  " Posamt=" + jsonbean.getPosamt());
+			vo.setResultcode("");
+			vo.setResultmsg("缺少相应参数：acccountno=" + jsonbean.getAcccountno() + 
+					  " daybook=" + jsonbean.getDaybook() +
+					  " placeno=" + jsonbean.getPlaceno() +
+					  " membertype=" + jsonbean.getMembertypeno() +
+					  " traceprice=" + jsonbean.getTraceprice() +
+					  " score=" + jsonbean.getScore() +
+					  " Checkcount=" + jsonbean.getCheckcount() + 
+					  " Posamt=" + jsonbean.getPosamt());
+			return vo.toChangeResultJson();
+			}
+			
+			if(DateUtil.validationDate(jsonbean.getPlaceno(), jsonbean.getVerifyInfo())){
+				vo.setResultcode("");
+				vo.setResultmsg("加密验证错误");
+				return vo.toChangeResultJson();
+			}
+			
+			if(!commonService.selectCinemaNo(jsonbean.getPlaceno())){
+				vo.setResultmsg("电影院不存在");
+				return vo.toChangeResultJson();
+			}
+			
+			C0001_MEM_ACCOUNT memAccount = commonService.selectMemberAccount(jsonbean.getAcccountno(), jsonbean.getPlaceno());
+			if(null == memAccount){
+				vo.setResultcode("");
+				vo.setResultmsg("会员不存在");
+				return vo.toChangeResultJson();
+			}
+			
+			if((memAccount.getBalance() - jsonbean.getTraceprice()) < 0){
+				vo.setResultmsg("会员账户余额不足");
+				return vo.toChangeResultJson();
+			}
+			
+			C0001_MEM_ACCOUNT account = adjustService.getAccount(jsonbean.getAcccountno());
+			vo = adjustService.insertDaybookBuyGiftPackage(jsonbean, account);
+			
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			vo.setResultcode("");
+			vo.setResultmsg("接口异常:" + e.getMessage());
+		}
+		return JSONObject.fromObject(vo).toString();
+	}
+
+		
+	public static void main(String[] args) throws Exception{
+		String json = "[{\"accountno\":\"1\",\"bxamt\":0,\"bxtracetypeno\":\"1\",\"centertraceno\":\"1\",\"cinemaname\":\"1\",\"ckcount\":0,"
+			    + "\"discount\":0,\"featureno\":\"1\",\"feeprice\":0,\"feetracetypeno\":\"1\",\"filmno\":\"1\",\"giftno\":\"1\","
+			    + "\"membertypename\":\"1\",\"membertypeno\":\"1\",\"oldbalance\":0,\"oldckcount\":0,\"oldposamt\":0,\"oldprice\":0,"
+			    + "\"oldscore\":0,\"paytraceno\":\"1\",\"placeno\":\"1\",\"posamt\":0,\"price\":0,\"score\":0,\"ticketsum\":0,"
+			    + "\"tracedate\":\"1\",\"tracememo\":\"1\",\"traceno\":\"1000000001\",\"traceprice\":0,\"tracetime\":\"1\",\"tracetypename\":\"2\","
+			    + "\"tracetypeno\":\"2\",\"username\":\"1\"}]";
+		
+		String IMPL_URL = "http://localhost:7888/MemberConcentrationService/all/adjustlevel";
+//		String jsonString = HttpUtils.http(IMPL_URL, paraMap);
+//		System.out.println(jsonString);
+		System.out.println();
+	}
+	
+	
+	
+	/**
+	 * 
+	 * @Description: 消费
+	 * @Title: consumptionTest  
+	 * @author: 王淼 
+	 * @Date: 2018年5月19日 下午2:31:52
+	 *
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	@Test
+	public void consumptionTest() throws Exception{
+		Md5 md5 = new Md5();
+		String myverifyInfo = md5.getMD5ofStr("888888" + DateUtil.simpleDateFormat("yyyy-MM-dd") + "cmts2016clkey").substring(8, 24).toLowerCase();
+		Map<String, Object> hashMap = new HashMap<String, Object>();
+		hashMap.put("placeno", "888888");
+		hashMap.put("pirce", "10.5");
+		hashMap.put("score", "0");
+		hashMap.put("checkcount", "0");
+		hashMap.put("posamt", "0");
+		hashMap.put("verifyinfo", myverifyInfo);
+		hashMap.put("acccountno", "1");
+		String json = "[{\"accountno\":\"1\",\"bxamt\":0,\"bxtracetypeno\":\"1\",\"centertraceno\":\"1\",\"cinemaname\":\"1\",\"ckcount\":0,"
+				    + "\"discount\":0,\"featureno\":\"1\",\"feeprice\":0,\"feetracetypeno\":\"1\",\"filmno\":\"1\",\"giftno\":\"1\","
+				    + "\"membertypename\":\"1\",\"membertypeno\":\"1\",\"oldbalance\":0,\"oldckcount\":0,\"oldposamt\":0,\"oldprice\":0,"
+				    + "\"oldscore\":0,\"paytraceno\":\"1\",\"placeno\":\"1\",\"posamt\":0,\"price\":0,\"score\":0,\"ticketsum\":0,"
+				    + "\"tracedate\":\"1\",\"tracememo\":\"1\",\"traceno\":\"1000000001\",\"traceprice\":0,\"tracetime\":\"1\",\"tracetypename\":\"2\","
+				    + "\"tracetypeno\":\"2\",\"username\":\"1\"}]";
+		hashMap.put("daybook", json);
+		System.out.println(JSONObject.fromObject(hashMap).toString());
+		
+	}
+}
+

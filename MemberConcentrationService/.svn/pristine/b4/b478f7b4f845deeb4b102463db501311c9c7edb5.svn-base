@@ -1,0 +1,369 @@
+package com.cmts.xm.service.reserved.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.cmts.xm.bean.table.reserved.ReservedBean;
+import com.cmts.xm.bean.table.reserved.ReservedOrderBean;
+import com.cmts.xm.bean.table.reserved.ReservedOrderSpBean;
+import com.cmts.xm.bean.table.reserved.XM_0727_ORDER;
+import com.cmts.xm.bean.table.reserved.XM_0728_ORDER_SP;
+import com.cmts.xm.bean.table.reserved.XM_0729_BUYER;
+import com.cmts.xm.bean.table.reserved.XM_0731_SALES_RETURN;
+import com.cmts.xm.bean.vo.ReservedVo;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.dao.util.DateUtil;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.reserved.ReservedInventoryService;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+/**
+ * 
+ * @Description: 星美生活订单接口Service实现
+ * @ClassName: ReservedinventoryService
+ * @author: 王淼 
+ * @date: 2017年11月16日 上午10:52:21  
+ *
+ */
+@Service
+public class ReservedinventoryServiceImpl implements ReservedInventoryService {
+	
+	private static Logger log = Logger.getLogger(ReservedinventoryServiceImpl.class);
+
+	@Autowired
+	private CommonService commonService;
+	
+	@Autowired
+	private DaoFactory dao;
+
+	/**
+	 * 
+	 * @Description: 保存星美生活订单入口
+	 * @Title: placeOrdersInsertInto  
+	 * @author: 王淼 
+	 * @Date: 2017年11月21日 上午11:48:43
+	 *
+	 * @param jsonString
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	@Transactional(propagation = Propagation.REQUIRED)
+	public String placeOrdersInsertInto(String orders) throws Exception {
+		JSONArray jsonArray = JSONArray.fromObject(orders);
+		for(int i = 0; i < jsonArray.size(); i++){
+			JSONObject jsonObject = (JSONObject) jsonArray.get(i);
+			ReservedBean reservedBean = (ReservedBean) JSONObject.toBean(jsonObject,ReservedBean.class);
+			String requestFlag = saveReservedInventory(reservedBean);
+			if(!"1".equals(requestFlag)){
+				log.info("影院上报编码(" + requestFlag + ")找不到指定影院，回滚事务");
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				return "影院编码不存在__storecode=" + requestFlag;
+			}
+			
+		}
+		return "OK";
+	}
+	
+	//开始保存星美生活订单数据
+	private String saveReservedInventory(ReservedBean reservedBean) throws Exception{
+		String custid = saveOrUpdateBuyer(reservedBean.getBuyer());
+		JSONArray jsonOrderArray = JSONArray.fromObject(reservedBean.getOrders());
+		for(int j = 0; j < jsonOrderArray.size(); j++){
+			JSONObject jsonObject = (JSONObject) jsonOrderArray.get(j);
+			ReservedOrderBean reservedOrderBean = (ReservedOrderBean) JSONObject.toBean(jsonObject,ReservedOrderBean.class);
+			String cinemaNo = commonService.judgeCinemaNoIsExist(reservedOrderBean.getStorecode());
+			if("0".equals(cinemaNo)){
+				return reservedOrderBean.getStorecode();
+			}
+			saveOrder(reservedOrderBean, custid, reservedBean.getReceiver(), cinemaNo);
+		}
+		return "1";
+	}
+	
+	//保存或更新买家信息
+	private String saveOrUpdateBuyer(Map<String, Object> buyer) throws Exception{
+		log.info("====================================开始执行保存或更新买家信息操作====================================");
+		JSONObject buyerJsonObj = JSONObject.fromObject(buyer);
+		XM_0729_BUYER buyerBean = (XM_0729_BUYER)JSONObject.toBean(buyerJsonObj, XM_0729_BUYER.class);
+		if(commonService.judgeBuyerIsExist(buyerBean.getCustid())){
+			log.info("买家(" + buyerBean.getCustid() + ")存在，执行更新操作");
+			dao.update(buyerBean);
+		}else{
+			log.info("买家(" + buyerBean.getCustid() + ")不存在，执行保存操作");
+			dao.insert(buyerBean);
+		}
+		log.info("====================================执行保存或更新买家信息操作结束====================================");
+		return buyerBean.getCustid();
+	}
+	
+	//保存星美生活订单信息
+	private void saveOrder(ReservedOrderBean reservedOrderBean, String custid, Map<String, Object> reveiver, String cinemaNo) throws Exception{
+		log.info("====================================开始执行保存星美生活订单信息操作====================================");
+		XM_0727_ORDER orderBean = new XM_0727_ORDER();
+		if(!commonService.judgeOrderIsExist(reservedOrderBean.getOrderid())){
+			log.info("星美生活订单(" + reservedOrderBean.getOrderid() + ")不存在，执行保存操作");
+			orderBean.setCustId(custid);
+			orderBean.setCinemaNo(cinemaNo);
+			orderBean.setOrderTime(DateUtil.simpleDateFormat("yyyy-MM-dd"));
+			orderBean.setNone(DateUtil.simpleDateFormat("") + "：商城上传订单信息，订单号：" + reservedOrderBean.getOrderid() + "。");
+			acquireReceiver(orderBean, reveiver);
+			acquireOrder(orderBean, reservedOrderBean);
+			acquireInvoice(orderBean, reservedOrderBean.getInvoice());
+			acquireTrans(orderBean, reservedOrderBean.getTrans());
+			dao.insert(orderBean);
+			saveOrderSp(reservedOrderBean, cinemaNo, orderBean);
+		}
+		log.info("====================================执行保存星美生活订单信息操作结束====================================");
+	}
+	
+	//获取收货人信息
+	private void acquireReceiver(XM_0727_ORDER orderBean, Map<String, Object> reveiver) throws Exception{
+		log.info("获取收货人信息-------------------------------------");
+		orderBean.setName((null != reveiver.get("name")) ? reveiver.get("name").toString() : "");
+		orderBean.setMobile((null != reveiver.get("mobile")) ? reveiver.get("mobile").toString() : "");
+		orderBean.setProvince((null != reveiver.get("province")) ? reveiver.get("province").toString() : "");
+		orderBean.setCity((null != reveiver.get("city")) ? reveiver.get("city").toString() : "");
+		orderBean.setArea((null != reveiver.get("area")) ? reveiver.get("area").toString() : "");
+		orderBean.setPostZip((null != reveiver.get("postzip")) ? reveiver.get("postzip").toString() : "");
+		orderBean.setAddr((null != reveiver.get("addr")) ? reveiver.get("addr").toString() : "");
+		orderBean.setExtra((null != reveiver.get("extra")) ? reveiver.get("extra").toString() : "");
+	}
+	
+	//获取订单信息
+	private void acquireOrder(XM_0727_ORDER orderBean, ReservedOrderBean reservedOrderBean) throws Exception{
+		log.info("获取订单信息-------------------------------------");
+		orderBean.setOrderId(reservedOrderBean.getOrderid());
+		orderBean.setMainOrderId(reservedOrderBean.getMainorderid());
+		orderBean.setBuyerMsg(reservedOrderBean.getBuyermsg());
+		orderBean.setStoreCode(reservedOrderBean.getStorecode());
+		if(null != reservedOrderBean.getSeller() && !"".equals(reservedOrderBean.getSeller())){
+			orderBean.setUserCode("S" + reservedOrderBean.getSeller());
+			String userName = commonService.selectUserName(orderBean.getUserCode());
+			orderBean.setUserName(userName);
+		}
+		orderBean.setPayDate(reservedOrderBean.getPaytime().substring(0, 10));
+		orderBean.setPayTime(reservedOrderBean.getPaytime().substring(11, 16));
+	}
+	
+	//获取发票信息
+	private void acquireInvoice(XM_0727_ORDER orderBean, Map<String, Object> invoice) throws Exception{
+		log.info("获取发票信息-------------------------------------");
+		orderBean.setType((null != invoice.get("type")) ? invoice.get("type").toString() : "");
+		orderBean.setTitle((null != invoice.get("title")) ? invoice.get("title").toString() : "");
+		orderBean.setTitleType((null != invoice.get("titletype")) ? Integer.parseInt(invoice.get("titletype").toString()) : 0);
+		orderBean.setTaxNum((null != invoice.get("taxnum")) ? invoice.get("taxnum").toString() : "");
+	}
+	
+	//获取提取方式信息
+	private void acquireTrans(XM_0727_ORDER orderBean, Map<String, Object> trans) throws Exception{
+		log.info("获取提取方式信息-------------------------------------");
+		switch (Integer.parseInt(trans.get("type").toString())) {
+		case 0:
+			orderBean.setTransType(0);//快递
+			orderBean.setTransInfo((null != trans.get("info")) ? trans.get("info").toString() : "");
+			break;
+		case 2:
+			orderBean.setTransType(1);//自提
+			String info = trans.get("info").toString();
+			orderBean.setPickCode((null != info.split(",")[0]) ? info.split(",")[0] : "");
+			orderBean.setTransInfo((info.split(",")).length > 1 ? info.split(",")[1] : "");
+			break;
+		case 3:
+			orderBean.setTransType(2);//配送
+			orderBean.setTransInfo((null != trans.get("info")) ? trans.get("info").toString() : "");
+			break;
+		}
+	}
+	
+	//保存星美生活订单商品信息
+	private void saveOrderSp(ReservedOrderBean reservedOrderBean, String cinemano, XM_0727_ORDER orderBean) throws Exception{
+		log.info("====================================开始执行保存星美生活订商品单信息操作====================================");
+		JSONArray jsonOrderSpArray = JSONArray.fromObject(reservedOrderBean.getGoods());
+		for(int k = 0; k < jsonOrderSpArray.size(); k++){
+			JSONObject jsonObject = (JSONObject) jsonOrderSpArray.get(k);
+			ReservedOrderSpBean reservedOrderSpBean = (ReservedOrderSpBean) JSONObject.toBean(jsonObject, ReservedOrderSpBean.class);
+			XM_0728_ORDER_SP orderSpBean = new XM_0728_ORDER_SP();
+			orderSpBean.setOrderId(reservedOrderBean.getOrderid());
+			acquireOrderSp(orderSpBean, reservedOrderSpBean, cinemano, orderBean);
+			dao.insert(orderSpBean);
+		}
+		log.info("====================================执行保存星美生活订商品单信息操作结束====================================");
+	}
+	
+	//获取商品信息
+	private void acquireOrderSp(XM_0728_ORDER_SP orderSpBean, ReservedOrderSpBean reservedOrderSpBean, String cinemano, XM_0727_ORDER orderBean) throws Exception{
+		log.info("获取商品信息-------------------------------------");
+		orderSpBean.setSpNo(reservedOrderSpBean.getGoodscode());
+		orderSpBean.setSpName(reservedOrderSpBean.getGoodsname());
+		orderSpBean.setQuantity(reservedOrderSpBean.getQuantity());
+		orderSpBean.setPrice(reservedOrderSpBean.getPrice());
+		orderSpBean.setExtra(reservedOrderSpBean.getExtra());  
+		orderSpBean.getCalculateAllPrice();
+		List<Map<String, Object>> listMap = quertCommissionPrice(reservedOrderSpBean.getGoodscode(), cinemano, reservedOrderSpBean.getPrice(), orderBean);
+		if(listMap.size() > 0 && null != orderBean.getUserName() && !"".equals(orderBean.getUserName())){
+			log.info("商品提成值：" + listMap.get(0).get("RULESPRICE").toString());
+			orderSpBean.setCommissionPrice(Double.parseDouble(listMap.get(0).get("RULESPRICE").toString()));
+			orderSpBean.setRulesno(listMap.get(0).get("RULESNO").toString());
+		}else{
+			log.info("商品提成值：0");
+			orderSpBean.setCommissionPrice(0D);
+		}
+		
+	}
+	
+	//获取商品提成
+	private List<Map<String, Object>> quertCommissionPrice(String spno, String cinemano, Double price, XM_0727_ORDER orderBean) throws Exception{
+		log.info("获取商品提成--------------------------------------");
+		String selldate = orderBean.getPayDate() + " " + orderBean.getPayTime();
+		String sql = "SELECT XM0735.RULESNO, DECODE(XM0733.RULESTYPE, 0, NVL(XM0735.RULESPRICE, 0), ROUND(NVL(XM0735.RULESPRICE, 0)/100 * " + price + ", 2)) RULESPRICE"
+		           + " FROM XM_0735_RULES_SP XM0735, XM_0733_COMMISSION_RULES XM0733 WHERE XM0735.SPNO = '" + spno + "' AND XM0735.RULESNO = XM0733.RULESNO(+) AND XM0733.ORDERTYPE = '1'"
+		           + " AND XM0735.RULESNO = (SELECT * FROM (SELECT XM0733.RULESNO FROM XM_0733_COMMISSION_RULES XM0733, XM_0734_RULES_CINEMA XM0734,"
+		           + " XM_0735_RULES_SP XM0735 WHERE XM0733.RULESNO = XM0734.RULESNO (+) AND XM0733.RULESNO = XM0735.RULESNO(+) AND XM0733.RULESAUDITDATE"
+		           + " IS NOT NULL AND XM0735.SPNO = '" + spno + "' AND XM0733.RULESSTARTDATE || ' 00:00' <= '" + selldate + "' AND XM0733.ORDERTYPE = '1' AND"
+		           + " DECODE(XM0733.RULESSTOPDATE, NULL, NVL( XM0733.RULESENDDATE, '9999-12-31') || ' 23:59', XM0733.RULESSTOPDATE) >= '" + selldate
+		           + "' AND (XM0733.ISALLCINEMA = 0 OR XM0734.CINEMANO = '" + cinemano + "') ORDER BY XM0733.RULESAUDITDATE DESC) WHERE ROWNUM = 1)";
+		 return dao.queryForMapList(sql, new Object[]{});
+	}
+
+	/**
+	 * 
+	 * @Description: 买家取消订单
+	 * @Title: placeOrdersUpdateForCancelInto  
+	 * @author: 王淼 
+	 * @Date: 2017年11月22日 上午9:57:04
+	 *
+	 * @param orderId
+	 * @param orderState
+	 * @param data
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	@Transactional(propagation = Propagation.REQUIRED)
+	public ReservedVo placeOrdersUpdateForCancelInto(String orderId, Integer orderState, String data) throws Exception {
+		ReservedVo vo = new ReservedVo();
+		if(commonService.selectOrderStateIsCorrect(orderId, new Integer[]{0})){
+			StringBuffer sql = new StringBuffer("UPDATE XM_0727_ORDER XM0727 SET XM0727.ORDERSTATE = ?, XM0727.CANCELORDERNO = ? WHERE XM0727.ORDERID = ?");
+			dao.updatesql(sql.toString(), new Object[]{orderState, data, orderId});
+		}
+		vo.setCode("0");
+		vo.setMsg("操作成功");
+		return vo;
+	}
+
+	/**
+	 * 
+	 * @Description: 买家确认收货
+	 * @Title: placeOrdersUpdateForReceiveInto  
+	 * @author: 王淼 
+	 * @Date: 2017年11月22日 上午10:56:17
+	 *
+	 * @param orderId
+	 * @param orderState
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	@Transactional(propagation = Propagation.REQUIRED)
+	public ReservedVo placeOrdersUpdateForReceiveInto(String orderId, Integer orderState) throws Exception {
+		ReservedVo vo = new ReservedVo();
+		if(commonService.selectOrderStateIsCorrect(orderId, new Integer[]{1})){
+			updateOrderState(orderId, orderState, "<br>" + DateUtil.simpleDateFormat("") + "：买家确认收货");
+		}
+		vo.setCode("0");
+		vo.setMsg("操作成功");
+		return vo;
+	}
+	
+	//修改星美生活订单状态
+	private void updateOrderState(String orderId, Integer orderState, String none) throws Exception {
+		StringBuffer sql = new StringBuffer("UPDATE XM_0727_ORDER XM0727 SET XM0727.ORDERSTATE = ?, XM0727.CONSIGNEEDATE = ?,");
+		sql.append(" XM0727.NONE = XM0727.NONE || ? WHERE XM0727.ORDERID = ?");
+		dao.updatesql(sql.toString(), new Object[]{orderState, DateUtil.simpleDateFormat(""), none, orderId});
+	}
+
+	/**
+	 * 
+	 * @Description: 买家退货
+	 * @Title: placeOrdersUpdateForReturnInto  
+	 * @author: 王淼 
+	 * @Date: 2017年11月22日 上午11:09:57
+	 *
+	 * @param orderId
+	 * @param orderState
+	 * @param data
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	@Transactional(propagation = Propagation.REQUIRED)
+	public ReservedVo placeOrdersUpdateForReturnInto(String orderId, Integer orderState, String data) throws Exception {
+		ReservedVo vo = new ReservedVo();
+		if(commonService.selectOrderStateIsCorrect(orderId, new Integer[]{1,2}) && "".equals(data)){
+			updateOrderState(orderId, orderState, "<br>" + DateUtil.simpleDateFormat("") + "：买家退货");
+		}else{
+			updateOrderState(orderId, orderState, "<br>" + DateUtil.simpleDateFormat("") + "：买家退货");
+			saveOrUpdateSalesReturn(data, orderId);
+		}
+		vo.setCode("0");
+		vo.setMsg("操作成功");
+		return vo;
+	}
+	
+	//保存或修改退货信息
+	private void saveOrUpdateSalesReturn(String data, String orderId) throws Exception {
+		String salesReturnNo = commonService.selectSalesReturn(data.split(",")[0]);
+		if("0".equals(salesReturnNo)){
+			saveSalesReturn(data, orderId);
+		}else{
+			updateSalesReturn(data, orderId, salesReturnNo);
+		}
+	}
+	
+	//保存退货信息
+	private void saveSalesReturn(String data, String orderId) throws Exception {
+		XM_0731_SALES_RETURN salesReturn = new XM_0731_SALES_RETURN();
+		String[] array = data.split(",");//0,退货编号  1快递公司编码  2快递单号  3应退金额  4退货商品数量  5退货商品名称  6退货商品编码
+		salesReturn.setSalesReturnNo(DateUtil.stampToDate());
+		salesReturn.setOrderId(orderId);
+		salesReturn.setReturnRetreatNo(array[0]);
+		salesReturn.setCourierCompanyNo(array[1]);
+		salesReturn.setTrackingNumber(array[2]);
+		salesReturn.setSpNo(array[6]);
+		salesReturn.setSpCount(Long.parseLong(array[4]));
+		salesReturn.setSpPrice(Double.parseDouble(array[3]));
+		salesReturn.setNone(array[5]);
+		dao.insert(salesReturn);
+	}
+	
+	//更新退货信息
+	private void updateSalesReturn(String data, String orderId, String salesReturnNo) throws Exception{
+		XM_0731_SALES_RETURN salesReturn = new XM_0731_SALES_RETURN();
+		String[] array = data.split(",");//0,退货编号  1快递公司编码  2快递单号  3应退金额  4退货商品数量  5退货商品名称  6退货商品编码
+		salesReturn.setSalesReturnNo(salesReturnNo);
+		salesReturn.setOrderId(orderId);
+		salesReturn.setReturnRetreatNo(array[0]);
+		salesReturn.setCourierCompanyNo(array[1]);
+		salesReturn.setTrackingNumber(array[2]);
+		salesReturn.setSpNo(array[6]);
+		salesReturn.setSpCount(Long.parseLong(array[4]));
+		salesReturn.setSpPrice(Double.parseDouble(array[3]));
+		salesReturn.setNone(array[5]);
+		dao.update(salesReturn);
+	}
+	
+}

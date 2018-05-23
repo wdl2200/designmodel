@@ -1,0 +1,42 @@
+package com.cmts.xm.bean.table.reserved;
+
+/**
+ * 10C用户表
+ * @Description: (这里用一句话描述这个类的作用)   
+ * @ClassName: C_SYS_SYSTEMUSER
+ * @author: 王淼 
+ * @date: 2018年3月13日 下午2:03:40  
+ *
+ */
+public class C_SYS_SYSTEMUSER {
+	
+	private String userCode;
+	
+	private String userName;
+	
+	private String userId;
+
+	public String getUserCode() {
+		return userCode;
+	}
+
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+}

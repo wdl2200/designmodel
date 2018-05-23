@@ -1,0 +1,12 @@
+package com.cmts.xm.service.member;
+
+/**
+ * 
+ * @Description: 查询账号
+ * @ClassName: QueryAccontService
+ * @author: wdl
+ *
+ */
+public interface QueryAccontService {
+
+}

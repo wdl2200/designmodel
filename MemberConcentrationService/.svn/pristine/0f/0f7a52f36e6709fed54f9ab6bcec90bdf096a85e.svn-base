@@ -1,0 +1,37 @@
+package com.cmts.xm.utils;
+
+public enum ErrorCode {
+	PARAM_LOST_ERROR("001","缺少参数"),
+	CINEMA_LOST_ERROR("002","影院不存在"),
+	VALICATE_CODE_ERROR("003","验证码错误"),
+	ACCOUNT_LOST_ERROR("005","账号不存在"),
+	ACCOUNT_NOTENOUGH_ERROR("006","账号金额不足"),
+	PAYBOOK_PROC_ERROR("007","流水订单已存在"),
+	LIFEDATE_PROC_ERROR("008","处理续期出错"),
+	PASSWORD_PROC_ERROR("009","修改密码出错"),
+	SYSTEM_ERROR("004","程序内部错误");
+	
+	
+	
+	private String values;
+	
+	private String msg;
+
+	private ErrorCode(String values, String msg) {
+		this.values = values;
+		this.msg = msg;
+	}
+
+	public String getValues() {
+		return values;
+	}
+
+	public String getMsg() {
+		return msg;
+	}
+
+	public void setMsg(String msg) {
+		this.msg = msg;
+	}
+
+}

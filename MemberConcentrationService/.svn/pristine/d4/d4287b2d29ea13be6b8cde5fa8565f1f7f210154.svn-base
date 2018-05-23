@@ -1,0 +1,32 @@
+package com.cmts.xm.web.member;
+
+/**
+ * 返回结果vo 父类
+ * @author wdl
+ *
+ */
+public class ResultVo {
+	/**
+	 * 错误编码
+	 */
+	private String resultcode;
+	/**
+	 * 错误信息
+	 */
+	private String resultmsg;
+	
+	public String getResultcode() {
+		return resultcode;
+	}
+	public void setResultcode(String resultcode) {
+		this.resultcode = resultcode;
+	}
+	public String getResultmsg() {
+		return resultmsg;
+	}
+	public void setResultmsg(String resultmsg) {
+		this.resultmsg = resultmsg;
+	}
+	
+
+}

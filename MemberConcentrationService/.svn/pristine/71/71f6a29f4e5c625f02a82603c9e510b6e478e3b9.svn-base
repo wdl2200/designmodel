@@ -1,0 +1,69 @@
+package com.cmts.xm.service.member.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0001_MEM_ACCOUNT;
+import com.cmts.xm.bean.vo.ResultVo;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.UpdatePasswordService;
+
+/**
+ * 
+ * @Description: 修改密码
+ * @ClassName: QueryAccontService
+ * @author: wdl
+ *
+ */
+@Service
+public class UpdatePasswordServiceImpl implements UpdatePasswordService {
+	@Autowired
+	private DaoFactory dao;
+	
+	@Autowired
+	CommonService commonService;
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public ResultVo updatePassword(JsonBean jsonBean) throws Exception {
+		// TODO Auto-generated method stub
+		C0001_MEM_ACCOUNT accountOk =commonService.selectMemberAccount(jsonBean.getAcccountno(),jsonBean.getPlaceno());
+		if(accountOk==null){
+			ResultVo vo = new ResultVo();
+			vo.setResultcode("1");
+			vo.setResultmsg("账号不存在");
+			return vo;
+		}
+		String result=commonService.procMemdaybook(jsonBean);
+		if(result.equals("-1")){
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			ResultVo vo = new ResultVo();
+			vo.setResultcode("1");
+			vo.setResultmsg("daybook处理失败");
+			return vo;
+		}
+		
+		StringBuffer sql = new StringBuffer("update C0001_MEM_ACCOUNT set password=? where placeno=? and accountno=?");
+		boolean isOk =dao.updatesql(sql.toString(), new Object[]{jsonBean.getPassword(),jsonBean.getPlaceno(),jsonBean.getAcccountno()});
+		if(isOk){
+			ResultVo vo = new ResultVo();
+			vo.setResultcode("0");
+			vo.setResultmsg("");
+			vo.getResultMap().put("serialnumber", result);
+			return vo;
+		}else{
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			ResultVo vo = new ResultVo();
+			vo.setResultcode("1");
+			vo.setResultmsg("更新密码失败");
+			return vo;
+		}
+		
+	}
+	
+}

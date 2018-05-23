@@ -1,0 +1,145 @@
+/* ========================================================
+* 哈尔滨富利通科技有限公司研发二部
+* 日 期：2018年5月19日
+* 功 能：
+* 作 者：李丹丹
+* 版 本：1.0.0
+* =========================================================
+*/
+package com.cmts.xm.service.member.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0001_MEM_ACCOUNT;
+import com.cmts.xm.bean.vo.ResultVo;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.AdjustAccountService;
+@Service
+public class AdjustAccountServiceImpl implements AdjustAccountService {
+	
+	@Autowired
+	DaoFactory dao;
+	
+	
+	@Autowired
+	private CommonService commonService;
+
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public ResultVo insertDaybookUpdateAccount(JsonBean jsonbean,
+			C0001_MEM_ACCOUNT account) throws Exception {
+		ResultVo vo = new ResultVo();
+		String serialnumber = commonService.procMemdaybook(jsonbean);
+		if("-1".equals(serialnumber)){
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode("");
+			vo.setResultmsg("会员调级-流水订单已存在");
+			return vo;
+		}
+		vo.getResultMap().put("serialnumber", serialnumber);
+		//新数据=账号数据减掉接口数据
+		double newbalance = account.getBalance() - jsonbean.getTraceprice(); 
+		double newscore = account.getScore() - jsonbean.getScore();
+		String updateSql = "update c0001_mem_account t set t.membertypeno='"+jsonbean.getMembertypeno()+"',"
+				+ "t.balance='"+newbalance+"',t.score='"+newscore+"' "
+				+ "where accountno='"+jsonbean.getAcccountno()+"' and placeno='"+jsonbean.getPlaceno()+"'";
+		if(dao.updatesql(updateSql, null)){
+			vo.setResultcode("");
+			String sql = "select * from C0001_MEM_ACCOUNT where accountno='"+jsonbean.getAcccountno()+"'";
+			C0001_MEM_ACCOUNT newAccount = dao.findByWhere(sql, null, C0001_MEM_ACCOUNT.class);
+			vo.getResultMap().put("account", newAccount);
+			vo.setResultmsg("会员调级-插入流水表成功更新会员数据成功");
+			return vo;
+		} else {
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode("");
+			vo.setResultmsg("会员调级-更新会员数据失败");
+			return vo;
+		}
+	}
+
+	@Override
+	public C0001_MEM_ACCOUNT getAccount(String accountno) throws Exception {
+		String sql = "select * from c0001_mem_account where accountno='"+accountno+"'";
+		return dao.findByWhere(sql, null, C0001_MEM_ACCOUNT.class);
+	}
+
+	@Override
+	public ResultVo insertDaybookUpdateScore(JsonBean jsonbean,
+			C0001_MEM_ACCOUNT account) throws Exception {
+		ResultVo vo = new ResultVo();
+		String serialnumber = commonService.procMemdaybook(jsonbean);
+		if("-1".equals(serialnumber)){
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode("");
+			vo.setResultmsg("会员调分-流水订单已存在");
+			return vo;
+		}
+		vo.getResultMap().put("serialnumber", serialnumber);
+		//新数据=账号数据减掉接口数据
+		double newbalance = account.getBalance() - jsonbean.getTraceprice(); 
+		double newscore = account.getScore() - jsonbean.getScore();
+		
+		String updateSql = "update c0001_mem_account t set "
+				+ "t.balance='"+newbalance+"',t.score='"+newscore+"' "
+				+ "where accountno='"+jsonbean.getAcccountno()+"' "
+				+ "and placeno='"+jsonbean.getPlaceno()+"'";
+		if(dao.updatesql(updateSql, null)){
+			vo.setResultcode("");
+			vo.setResultmsg("会员调分-插入流水表成功更新会员数据成功");
+			return vo;
+		} else {
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode("");
+			vo.setResultmsg("会员调分-更新会员数据失败");
+			return vo;
+		}
+	}
+
+	@Override
+	public ResultVo insertDaybookBuyGiftPackage(JsonBean jsonbean,
+			C0001_MEM_ACCOUNT account) throws Exception {
+		ResultVo vo = new ResultVo();
+		String serialnumber = commonService.procMemdaybook(jsonbean);
+		if("-1".equals(serialnumber)){
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode("");
+			vo.setResultmsg("会员调分-流水订单已存在");
+			return vo;
+		}
+		vo.getResultMap().put("serialnumber", serialnumber);
+		//新数据=账号数据减掉接口数据
+		double newbalance = account.getBalance() - jsonbean.getTraceprice(); 
+		double newscore = account.getScore() - jsonbean.getScore();
+		int newckcount = (int) (account.getCkcount() - jsonbean.getCheckcount());
+		double newposAmt = account.getPosamt() - jsonbean.getPosamt();	
+		String updateSql = "update c0001_mem_account t set "
+				+ "t.membertypeno='"+jsonbean.getMembertypeno()+"',"
+				+ "t.balance='"+newbalance+"',t.score='"+newscore+"' ,"
+				+ "t.ckcount='"+newckcount+"',t.posamt='"+newposAmt+"' ";
+				if(jsonbean.getLeftdate() != null){
+					updateSql = updateSql + ",t.liftdate='"+jsonbean.getLeftdate()+"' ";
+				}
+				updateSql = updateSql + " where accountno='"+jsonbean.getAcccountno()+"' "
+				+ " and placeno='"+jsonbean.getPlaceno()+"'";
+		if(dao.updatesql(updateSql, null)){
+			vo.setResultcode("");
+			vo.setResultmsg("购买礼包-插入流水表成功更新会员数据成功");
+			return vo;
+		} else {
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode("");
+			vo.setResultmsg("购买礼包-更新会员数据失败");
+			return vo;
+		}
+	}
+
+}
+

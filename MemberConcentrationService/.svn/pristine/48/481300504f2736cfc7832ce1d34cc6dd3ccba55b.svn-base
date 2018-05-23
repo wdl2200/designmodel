@@ -1,0 +1,31 @@
+package member;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = "classpath:applicationContext.xml")
+public class SpringTest   extends AbstractJUnit4SpringContextTests{
+	@Autowired
+	private com.cmts.xm.web.member.QueryAccont queryAccont;
+	
+	@Test
+	public void testSelectUser() throws Exception{
+		/*queryAccont.queryAccont("2", "3", "4", "5", null, null, null);*/
+		
+	}
+
+	public com.cmts.xm.web.member.QueryAccont getQueryAccont() {
+		return queryAccont;
+	}
+
+	public void setQueryAccont(com.cmts.xm.web.member.QueryAccont queryAccont) {
+		this.queryAccont = queryAccont;
+	}
+	
+	
+
+}

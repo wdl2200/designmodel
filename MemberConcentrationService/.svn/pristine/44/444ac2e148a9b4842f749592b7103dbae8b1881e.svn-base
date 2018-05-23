@@ -1,0 +1,132 @@
+package com.cmts.xm.service.member.impl;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.vo.ResultVo;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.ConsumptionAndRechargeService;
+
+/**
+ * 
+ * @Description: 消费与充值Service实现
+ * @ClassName: ConsumptionAndTopUpServiceImpl
+ * @author: 王淼 
+ * @date: 2018年5月19日 下午2:02:01  
+ *
+ */
+@SuppressWarnings({ "all" })
+@Service
+public class ConsumptionAndRechargeServiceImpl implements ConsumptionAndRechargeService {
+	
+	private static Logger log = Logger.getLogger(ConsumptionAndRechargeServiceImpl.class);
+	
+	@Autowired
+	private DaoFactory dao;
+	
+	@Autowired
+	private CommonService commonService;
+	
+
+	/**
+	 * 
+	 * @Description: 消费
+	 * @Title: consumptionInformation  
+	 * @author: 王淼 
+	 * @Date: 2018年5月19日 下午12:30:08
+	 *
+	 * @param jsonbean
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	@Transactional(propagation = Propagation.REQUIRED)
+	public ResultVo consumptionInformation(JsonBean jsonbean) throws Exception {
+		log.info("***********开始执行消费处理方法***********");
+		ResultVo vo = new ResultVo();
+		String serialnumber = commonService.procMemdaybook(jsonbean);
+		if("-1".equals(serialnumber)){
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultmsg("流水订单已存在");
+			return vo;
+		}
+		updateMemAccount(jsonbean);
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("serialnumber", serialnumber);
+		map.put("account", commonService.selectMemberAccount(jsonbean.getAcccountno(), jsonbean.getPlaceno()));
+		vo.setResultcode("0");
+		vo.setResultmsg("操作成功");
+		vo.setResultMap(map);
+		return vo;
+	}
+	
+	/**
+	 * 
+	 * @Description: 充值
+	 * @Title: topUpInformation  
+	 * @author: 王淼 
+	 * @Date: 2018年5月19日 下午1:57:18
+	 *
+	 * @param jsonbean
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	@Transactional(propagation = Propagation.REQUIRED)
+	public ResultVo rechargeInformation(JsonBean jsonbean) throws Exception {
+		log.info("***********开始执行充值处理方法***********");
+		ResultVo vo = new ResultVo();
+		String serialnumber = commonService.procMemdaybook(jsonbean);
+		if("-1".equals(serialnumber)){
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultmsg("流水订单已存在");
+			return vo;
+		}
+		updateMemAccount(jsonbean);
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("serialnumber", serialnumber);
+		map.put("account", commonService.selectMemberAccount(jsonbean.getAcccountno(), jsonbean.getPlaceno()));
+		vo.setResultcode("0");
+		vo.setResultmsg("操作成功");
+		vo.setResultMap(map);
+		return vo;
+	}
+	
+	
+	//修改会员信息
+	private void updateMemAccount(JsonBean jsonbean) throws Exception {
+		Map<String, Object> paramsMap = new HashMap<String, Object>();
+		StringBuffer sql = new StringBuffer("UPDATE C0001_MEM_ACCOUNT C0001 SET");
+		sql.append(" C0001.BALANCE = C0001.BALANCE - ?, C0001.SCORE = C0001.SCORE - ?");
+		paramsMap.put("pirce", jsonbean.getPirce());
+		paramsMap.put("score", jsonbean.getScore());
+		if(null != jsonbean.getCheckcount() && !"".equals(jsonbean.getCheckcount())){
+			sql.append(", C0001.CKCOUNT = C0001.CKCOUNT - ?");
+			paramsMap.put("ckCount", jsonbean.getCheckcount());
+		}
+		if(null != jsonbean.getPosamt() && !"".equals(jsonbean.getPosamt())){
+			sql.append(", C0001.POSAMT = C0001.POSAMT - ?");
+			paramsMap.put("ckCount", jsonbean.getCheckcount());
+		}
+		if(null != jsonbean.getMembertypeno() && !"".equals(jsonbean.getMembertypeno())){
+			sql.append(", C0001.MEMBERTYPENO = ?");
+			paramsMap.put("ckCount", jsonbean.getCheckcount());
+		}
+		sql.append(" WHERE C0001.ACCOUNTNO = ? AND C0001.PLACENO = ?");
+		paramsMap.put("", jsonbean.getAcccountno());
+		paramsMap.put("", jsonbean.getPlaceno());
+		dao.updatesql(sql.toString(), paramsMap.values().toArray());
+	}
+
+}

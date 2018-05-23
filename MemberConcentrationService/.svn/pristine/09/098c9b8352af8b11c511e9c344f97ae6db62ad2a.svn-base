@@ -1,0 +1,54 @@
+package com.cmts.xm.web.member;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.QueryAccontService;
+
+import net.sf.json.JSONObject;
+
+/**
+ * 
+ * @Description: 修改星美生活订单接口
+ * @ClassName: UpdatePlaceOrders
+ * @author: 王淼 
+ * @date: 2017年11月21日 下午8:31:59  
+ *
+ */
+@SuppressWarnings({ "all" })
+@Controller
+@RequestMapping(value = "/")
+public class queryAccont {
+	
+	private static Logger log = Logger.getLogger(queryAccont.class);
+	
+	@Autowired
+	private CommonService commonService;
+	
+	@Autowired
+	private QueryAccontService queryAccontService;
+	
+	@RequestMapping(value = "/queryAccont" , produces = "application/json; charset=utf-8")
+	public @ResponseBody String queryAccont(String acccountno ,String cardno,String memoryid,String placeno,HttpServletRequest request, HttpServletResponse response){
+		
+		try {
+			log.info("queryAccont传入参数：acccountno=" + acccountno + ",cardno=" + cardno + ",memoryid=" + memoryid);
+			
+			
+			
+			
+		} catch (Exception e) {
+		}
+		
+		return JSONObject.fromObject("").toString();
+	}
+	
+
+}

@@ -1,0 +1,117 @@
+package com.cmts.xm.service.common.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0001_MEM_ACCOUNT;
+import com.cmts.xm.bean.table.member.C0002_MEM_DAYBOOK;
+import com.cmts.xm.bean.table.member.C0003_MEM_MEMBER;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.service.common.CommonService;
+
+/**
+ * 
+ * @Description: 公共方法Service实现
+ * @ClassName: CommonServiceImpl
+ * @author: 王淼 
+ * @date: 2017年11月17日 上午9:56:14  
+ *
+ */
+@Service
+public class CommonServiceImpl implements CommonService {
+	
+	@Autowired
+	private DaoFactory dao;
+
+	/**
+	 * 
+	 * @Description: 根据一组影院上报编码查询一组影院编码
+	 * @Title: selectCinemaNos  
+	 * @author: 王淼 
+	 * @Date: 2017年11月20日 下午2:51:17
+	 *
+	 * @param placeNo
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public boolean selectCinemaNo(String placeNo) throws Exception {
+		StringBuffer sql = new StringBuffer("SELECT T1005.CINEMANO CINEMANO FROM T1005_CINEMA T1005 WHERE T1005.PLACENO = ? ");
+		int count = dao.getCount(sql.toString(), new Object[]{placeNo});
+		return true;
+	}
+	/**
+	 * 
+	 * @Title:        selectMember 
+	 * @Description:  根据会员编号查询会员信息
+	 * @param:        @param memberno
+	 * @param:        @param placeno
+	 * @param:        @return
+	 * @param:        @throws Exception    
+	 * @return:       C0003_MEM_MEMBER    
+	 * @throws 
+	 * @author        赵斌
+	 * @Date          2018-5-19 上午09:57:27
+	 */
+	@Override
+	public C0003_MEM_MEMBER selectMember(String memberno,String placeno) throws Exception {
+		StringBuffer sql = new StringBuffer("select * from C0003_MEM_MEMBER t where t.placeno=? and t.memberno=?");
+		return dao.findByWhere(sql.toString(), new Object[]{placeno,memberno}, C0003_MEM_MEMBER.class);
+	}
+	/**
+	 * 
+	 * @Title:        selectMemberAccount 
+	 * @Description:  根据会员账户编号查询会员账户信息
+	 * @param:        @param accountno
+	 * @param:        @param placeno
+	 * @param:        @return
+	 * @param:        @throws Exception    
+	 * @return:       C0001_MEM_ACCOUNT    
+	 * @throws 
+	 * @author        赵斌
+	 * @Date          2018-5-19 上午09:57:30
+	 */
+	@Override
+	public C0001_MEM_ACCOUNT selectMemberAccount(String accountno,String placeno) throws Exception {
+		StringBuffer sql = new StringBuffer("select * from C0001_MEM_ACCOUNT t where t.placeno=? and t.accountno=?");
+		return dao.findByWhere(sql.toString(), new Object[]{placeno,accountno}, C0001_MEM_ACCOUNT.class);
+	}
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public String procMemdaybook(JsonBean jsonbean)
+			throws Exception {
+		String status = "";
+		String placeno = jsonbean.getPlaceno();
+		List<C0002_MEM_DAYBOOK> oldmemdaybook = jsonbean.getDaybook();
+		if(oldmemdaybook!=null && oldmemdaybook.size()!=0){
+			for(C0002_MEM_DAYBOOK memdaybook:oldmemdaybook){
+				String oldtraceno = memdaybook.getTraceno();
+				StringBuffer sql = new StringBuffer("select * from C0002_MEM_DAYBOOK t where t.placeno=? and t.traceno=?");
+				C0002_MEM_DAYBOOK t = dao.findByWhere(sql.toString(), new Object[]{placeno,oldtraceno}, C0001_MEM_ACCOUNT.class);
+				if(t==null){
+					String newtraceno = this.getNewMemdaybookTraceno();
+					C0002_MEM_DAYBOOK newmemdaybook = memdaybook;
+					newmemdaybook.setCentertraceno(newtraceno);
+					newmemdaybook.setPlaceno(placeno);
+					dao.insert(newmemdaybook);
+					status = newtraceno+"_"+oldtraceno+",";
+				}else{
+					status = "-1";
+					break;
+				}
+			}
+		}
+		return status;
+	}
+	@Override
+	public String getNewMemdaybookTraceno() throws Exception {
+		StringBuffer sql = new StringBuffer("select seq_c0002_mem_daybook.nextval from dual ");
+		return dao.getValue(sql.toString(), null);
+	}
+}

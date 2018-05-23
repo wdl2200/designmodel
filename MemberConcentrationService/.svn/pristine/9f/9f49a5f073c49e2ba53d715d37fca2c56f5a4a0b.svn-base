@@ -1,0 +1,166 @@
+package com.cmts.xm.service.common;
+
+/**
+ * 
+ * @Description: 公共方法Service
+ * @ClassName: commonService
+ * @author: 王淼 
+ * @date: 2017年11月17日 上午9:53:26  
+ *
+ */
+public interface CommonService {
+
+	/**
+	 * 
+	 * @Description: 根据一组影院上报编码查询一组影院编码
+	 * @Title: selectCinemaNos  
+	 * @author: 王淼 
+	 * @Date: 2017年11月20日 下午2:51:17
+	 *
+	 * @param placeNo
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public String selectCinemaNos(String placeNo) throws Exception;
+	
+	/**
+	 * 
+	 * @Description: 判断影城是否存在，存在返回cinemaNo否则返回0
+	 * @Title: judgeCinemaNoIsExist  
+	 * @author: 王淼 
+	 * @Date: 2017年11月21日 上午11:55:56
+	 *
+	 * @param placeNo
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public String judgeCinemaNoIsExist(String placeNo) throws Exception;
+	
+	/**
+	 * 
+	 * @Description: 判断买家信息是否存在
+	 * @Title: judgeBuyerIsExist  
+	 * @author: 王淼 
+	 * @Date: 2017年11月21日 下午1:55:38
+	 *
+	 * @param custid
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public Boolean judgeBuyerIsExist(String custid) throws Exception;
+	
+	/**
+	 * 
+	 * @Description: 判断订单是否存在
+	 * @Title: judgeOrderIsExist  
+	 * @author: 王淼 
+	 * @Date: 2017年11月21日 下午1:56:14
+	 *
+	 * @param orderId
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public Boolean judgeOrderIsExist(String orderId) throws Exception;
+	
+	/**
+	 * 
+	 * @Description: 判断订单状态是否正确
+	 * @Title: selectOrderStateIsCorrect  
+	 * @author: 王淼 
+	 * @Date: 2017年11月22日 上午10:03:05
+	 *
+	 * @param orderId
+	 * @param orderState
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public Boolean selectOrderStateIsCorrect(String orderId, Integer[] orderState) throws Exception;
+	
+	/**
+	 * 
+	 * @Description: 判断商品数量是否可退
+	 * @Title: judgeOrderSpIsReturnable  
+	 * @author: 王淼 
+	 * @Date: 2017年11月22日 下午1:06:10
+	 *
+	 * @param orderId
+	 * @param spNo
+	 * @param spCount
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public Boolean judgeOrderSpIsReturnable(String orderId, String spNo, Integer spCount) throws Exception;
+	
+	/**
+	 * 
+	 * @Description: 查询退货编码
+	 * @Title: selectSalesReturn  
+	 * @author: 王淼 
+	 * @Date: 2017年11月22日 下午6:15:29
+	 *
+	 * @param returnRetreatNo
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public String selectSalesReturn(String returnRetreatNo) throws Exception;
+	
+	/**
+	 * 
+	 * @Description: 查询订单是否存在
+	 * @Title: judgeOrderIsExist  
+	 * @author: 王淼 
+	 * @Date: 2018年1月8日 上午10:33:27
+	 *
+	 * @param orderId
+	 * @param scode
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public Boolean judgeOrderIsExist(String orderId, String scode) throws Exception;
+	
+	/**
+	 * 
+	 * @Description: 查询影院名称
+	 * @Title: selectCinemaName  
+	 * @author: 王淼 
+	 * @Date: 2018年1月8日 下午4:31:41
+	 *
+	 * @param scode
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public String selectCinemaName(String scode) throws Exception;
+	
+	/**
+	 * 
+	 * @Description: 根据员工编码查询员工姓名
+	 * @Title: selectUserName  
+	 * @author: 王淼 
+	 * @Date: 2018年3月12日 下午5:23:49
+	 *
+	 * @param userCode
+	 * @return
+	 * @throws Exception
+	 *   
+	 * @throws
+	 */
+	public String selectUserName(String userCode) throws Exception;
+}

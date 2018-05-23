@@ -1,0 +1,123 @@
+/* ========================================================
+* 哈尔滨富利通科技有限公司研发二部
+* 日 期：2018-5-19
+* 功能：
+* 作 者：赵斌
+* 版 本：1.0.0
+* =========================================================
+*/
+package com.cmts.xm.service.member.impl;
+
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0001_MEM_ACCOUNT;
+import com.cmts.xm.bean.table.member.C0003_MEM_MEMBER;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.MemberRegisterService;
+/**
+ * 
+* @FileName MemberRegisterService.java
+* @Package com.cmts.xm.service.member
+* @Description 会员注册接口serviceimpl
+* @Author 赵斌
+* @date 2018-5-19 上午11:16:30 
+* @Version V1.0.1
+ */
+@Service
+public class MemberRegisterServiceImpl implements MemberRegisterService {
+	@Autowired
+	private DaoFactory dao;
+	@Autowired
+	private CommonService commonservice;
+	/**
+	 * 
+	 * @Title:        memberRegister 
+	 * @Description:  会员注册开户开卡 
+	 * @param:        @param jsonbean    
+	 * @return:       void    
+	 * @throws 
+	 * @author        赵斌
+	 * @Date          2018-5-19 下午12:15:46
+	 */
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public String memberRegister(JsonBean jsonbean) throws Exception {
+		String flag = "";
+		String placeno = jsonbean.getPlaceno();
+		String opttype = jsonbean.getOpttype();
+		//注册
+		if(opttype.substring(0,1).equals("1")){
+			C0003_MEM_MEMBER member = jsonbean.getMember();
+			member.setPlaceno(placeno);
+			dao.insert(member);
+		}
+		//开户和开卡
+		if(opttype.substring(1,2).equals("1") || opttype.substring(2,3).equals("1")){
+			C0001_MEM_ACCOUNT memberaccount = jsonbean.getAccount();
+			memberaccount.setPlaceno(placeno);
+			dao.insert(memberaccount);
+		}
+		String status = commonservice.procMemdaybook(jsonbean);
+		if(StringUtils.isNotBlank(status) && status.equals("-1")){
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			flag = status;
+		}else{
+			flag = status;
+		}
+		return flag;
+	}
+	/**
+	 * 
+	 * @Title:        memberRegisterInsert 
+	 * @Description:  修改会员
+	 * @param:        @param member    
+	 * @return:       void    
+	 * @throws 
+	 * @author        赵斌
+	 * @Date          2018-5-19 上午11:22:43
+	 */
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public void memberRegisterUpdate(JsonBean jsonbean) throws Exception  {
+		String placeno = jsonbean.getPlaceno();
+		C0003_MEM_MEMBER member = jsonbean.getMember();
+		member.setPlaceno(placeno);
+		dao.update(member);
+	}
+	/**
+	 * 
+	 * @Title:        memberRegisterInsert 
+	 * @Description:  新增会员
+	 * @param:        @param member    
+	 * @return:       void    
+	 * @throws 
+	 * @author        赵斌
+	 * @Date          2018-5-19 上午11:22:43
+	 */
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public void memberRegisterSplitGroup(JsonBean jsonbean) throws Exception  {
+		String placeno = jsonbean.getPlaceno();
+		C0003_MEM_MEMBER member = jsonbean.getMember();
+		String memberno = member.getMemberno();
+		member.setPlaceno(placeno);
+		dao.insert(member);
+		C0001_MEM_ACCOUNT memberaccount = jsonbean.getAccount();
+		String memberaccountno = memberaccount.getAccountno();
+		C0001_MEM_ACCOUNT oldmemberaccount = commonservice.selectMemberAccount(memberaccountno, placeno);
+		String gmemberno = oldmemberaccount.getMemberno();
+		StringBuffer sql = new StringBuffer("update C0001_MEM_ACCOUNT t set t1.memberno=? ,gmemberno=? where t.memberaccountno=? and t.placeno=?");
+		dao.updatesql(sql.toString(),  new Object[]{memberno,gmemberno,memberaccountno,placeno});
+	}
+
+}
+

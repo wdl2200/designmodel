@@ -1,0 +1,78 @@
+package com.cmts.xm.bean.table.reserved;
+
+/**
+ * 
+ * @Description: 解析星美生活订单Bean
+ * @ClassName: ReservedOrderBean
+ * @author: 王淼 
+ * @date: 2017年11月21日 下午2:20:00  
+ *
+ */
+public class ReservedOrderSpBean {
+
+	/**
+	 * 商品编码
+	 */
+	private String goodscode = "";
+	
+	/**
+	 * 商品名称
+	 */
+	private String goodsname = "";
+	
+	/**
+	 * 购买数量
+	 */
+	private Long quantity = new Long(0);
+	
+	/**
+	 * 商城中商品单价
+	 */
+	private Double price = new Double(0);
+	
+	/**
+	 * 备注
+	 */
+	private String extra = "";
+
+	public String getGoodscode() {
+		return goodscode;
+	}
+
+	public void setGoodscode(String goodscode) {
+		this.goodscode = goodscode;
+	}
+
+	public String getGoodsname() {
+		return goodsname;
+	}
+
+	public void setGoodsname(String goodsname) {
+		this.goodsname = goodsname;
+	}
+
+	public Long getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(Long quantity) {
+		this.quantity = quantity;
+	}
+
+	public Double getPrice() {
+		return price;
+	}
+
+	public void setPrice(Double price) {
+		this.price = price;
+	}
+
+	public String getExtra() {
+		return extra;
+	}
+
+	public void setExtra(String extra) {
+		this.extra = extra;
+	}
+	
+}

@@ -1,0 +1,57 @@
+package com.cmts.xm.bean.table.reserved;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 
+ * @Description: 解析星美生活订单Bean
+ * @ClassName: ReservedOrderBean
+ * @author: 王淼 
+ * @date: 2017年11月21日 上午10:20:39  
+ *
+ */
+public class ReservedBean {
+	
+	/**
+	 * 买家信息
+	 */
+	private Map<String, Object> buyer = new HashMap<String, Object>();
+	
+	/**
+	 * 收货人信息
+	 */
+	private Map<String, Object> receiver = new HashMap<String, Object>();
+	
+	/**
+	 * 订单信息
+	 */
+	private List<Map<String, Object>> orders = new ArrayList<Map<String,Object>>();
+	
+	public Map<String, Object> getBuyer() {
+		return buyer;
+	}
+
+	public void setBuyer(Map<String, Object> buyer) {
+		this.buyer = buyer;
+	}
+
+	public Map<String, Object> getReceiver() {
+		return receiver;
+	}
+
+	public void setReceiver(Map<String, Object> receiver) {
+		this.receiver = receiver;
+	}
+
+	public List<Map<String, Object>> getOrders() {
+		return orders;
+	}
+
+	public void setOrders(List<Map<String, Object>> orders) {
+		this.orders = orders;
+	}
+
+}

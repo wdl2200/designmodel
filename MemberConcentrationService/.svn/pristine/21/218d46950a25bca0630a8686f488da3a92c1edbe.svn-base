@@ -1,0 +1,73 @@
+package com.cmts.xm.service.member.impl;
+
+import java.util.List;
+
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0001_MEM_ACCOUNT;
+import com.cmts.xm.bean.table.member.C0002_MEM_DAYBOOK;
+import com.cmts.xm.bean.vo.ResultVo;
+import com.cmts.xm.dao.DaoFactory;
+import com.cmts.xm.service.common.CommonService;
+import com.cmts.xm.service.member.MemberAccountHlService;
+import com.cmts.xm.utils.ErrorCode;
+import com.cmts.xm.web.member.MemberIntegralGift;
+/**
+ * 
+ * @Description: 积分换礼、退礼
+ * @ClassName: MemberAccountHlServiceImpl
+ * @author: wanghm
+ * @date: 2018年05月19日 
+ *
+ */
+@Service
+public class MemberAccountHlServiceImpl implements MemberAccountHlService {
+	
+	private static Logger log = Logger.getLogger(MemberIntegralGift.class);
+	
+	@Autowired
+	private  DaoFactory dao;
+	
+	@Autowired
+	private CommonService  commonService;
+	
+	
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED) 
+	public ResultVo addMemberAccountHl(JsonBean jsonbean,C0001_MEM_ACCOUNT memberAccount) throws Exception {
+		ResultVo vo = new ResultVo();		
+		String status = commonService.procMemdaybook(jsonbean);
+		if(status.equals("-1")){
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode(ErrorCode.PAYBOOK_PROC_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.PAYBOOK_PROC_ERROR.getMsg());
+			log.info("流水订单已存在"+vo.toString());
+			return vo;	
+		}
+		double newbalance = memberAccount.getBalance() - jsonbean.getPirce(); 
+		double newscore = memberAccount.getScore() - jsonbean.getScore();
+		
+		//更新mem_acccount积分和余额
+		String sql = " update C0001_MEM_ACCOUNT t set t.balance = '"+newbalance+"' , t.score = '"+newscore+"' "+
+					 " where t. accountno = '"+jsonbean.getAcccountno()+"' and t.placeno = '"+jsonbean.getPlaceno()+"' "  ;		
+		boolean flag = dao.updatesql(sql, null);
+		if(flag){
+			vo.setResultcode(ErrorCode.SUCCESS.getValues());
+			vo.setResultmsg(ErrorCode.SUCCESS.getMsg());
+			vo.getResultMap().put("serialnumber", status);
+		}else{
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			vo.setResultcode(ErrorCode.SYSTEM_ERROR.getValues());
+			vo.setResultmsg(ErrorCode.SYSTEM_ERROR.getMsg());
+		}
+		return vo;
+	}
+
+}

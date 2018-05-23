@@ -1,0 +1,41 @@
+<%@ page language="java" contentType="text/html; charset=utf-8"
+    pageEncoding="utf-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<title>Insert title here</title>
+
+
+<script type="text/javascript">
+function aaa(){
+	var postdata=document.getElementById("postdata").innerHTML;
+	$.ajax({
+		url :$("#serviceUrl").val(),
+		type : "post",
+		contentType : "application/x-www-form-urlencoded; charset=UTF-8",
+		async: false,
+		data : {
+			"postdata" : encodeURI(postdata)
+		},
+		success : function(data){
+			var json = JSON.stringify(data)
+			document.getElementById("postdata2").value=json;
+		}
+	});
+}
+
+</script>
+</head>
+<body>
+<!-- 注意： daybook的traceno 每次插入C0002_MEM_DAYBOOK时手动改一下。不能与数据库重复  ce9cbf83a31aede4-->
+   <span>接口地址：</span><input type="text" id="serviceUrl" value="http://119.254.34.202:59220/MemberConcentrationService/" style="width: 500px;"/>
+   <br>
+   <span>json参数</span><textarea id="postdata" rows="20px" cols="100px" ></textarea>
+   <input  type="button"  onclick="aaa()"  value="点击发送json"/>
+   <br>
+   <textarea id="postdata2" rows="20px" cols="100px" ></textarea>
+</body>
+</html>

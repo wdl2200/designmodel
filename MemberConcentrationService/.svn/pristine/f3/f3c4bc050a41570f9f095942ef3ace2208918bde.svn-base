@@ -1,0 +1,27 @@
+package com.cmts.xm.service.member;
+
+import com.cmts.xm.bean.table.common.JsonBean;
+import com.cmts.xm.bean.table.member.C0002_MEM_DAYBOOK;
+import com.cmts.xm.bean.vo.ResultVo;
+
+/** 
+ *___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+ *公司：哈尔滨富力通(研发二部)             			 
+ *                                        	 
+ *项目： MemberConcentrationService	              	 	   
+ *作者：周贵雨     			              		 
+ *时间：2018年5月19日 上午9:58:55                 		 
+ *功能：                                                                                                  	 	 
+ *___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+ */
+public interface MemcardService {
+
+	
+	//换卡
+	ResultVo updateCardno(JsonBean jsonbean) throws Exception;
+	//补卡
+	ResultVo updatebucard(JsonBean jsonbean);
+	//激活
+	ResultVo updateActivateCard(JsonBean jsonbean);
+
+}
